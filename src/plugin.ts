@@ -29,7 +29,7 @@ export const ScheduledPostPlugin =
           if (isEnabled) {
             return {
               ...collection,
-              fields: [...collection.fields, PublishDateField(scheduleConfig.interval!)],
+              fields: [...collection.fields, PublishDateField(scheduleConfig)],
               hooks: {
                 ...collection.hooks,
                 afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig)],
