@@ -1,9 +1,9 @@
-import db from 'debug'
-import { JobCallback } from 'node-schedule'
-import { ScheduledPost } from './types'
-import { Payload } from 'payload'
+import { type JobCallback } from 'node-schedule'
+import { type ScheduledPost } from './types'
+import { type Payload } from 'payload'
 import { debug } from './util'
-import { PaginatedDocs } from 'payload/dist/database/types'
+import { type PaginatedDocs } from 'payload/dist/database/types'
+import { type ValueWithRelation } from 'payload/types'
 
 export async function getUpcomingPosts(
   interval: number,
