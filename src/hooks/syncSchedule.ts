@@ -1,26 +1,27 @@
-import { CollectionBeforeChangeHook } from 'payload/types'
-import { ScheduledPostConfig } from '../types'
+import { CollectionAfterChangeHook } from 'payload/types'
+import { ScheduledPost, ScheduledPostConfig } from '../types'
 
 import { debug } from '../util'
+import { PaginatedDocs } from 'payload/dist/database/types'
 
 export default function syncSchedule(
   scheduleConfig: ScheduledPostConfig,
-): CollectionBeforeChangeHook {
-  return async ({ collection, data, originalDoc, req: { payload } }) => {
-    const isPublishing = data._status === 'published'
-    const shouldSchedule = data.publish_date && new Date(data.publish_date) > new Date()
-    const scheduleChanged = data.publish_date !== originalDoc?.publish_date
-    debug(collection?.slug, originalDoc?.id)
+): CollectionAfterChangeHook {
+  return async ({ collection, doc, previousDoc, req: { payload } }) => {
+    debug(collection?.slug, doc?.id)
+    const isPublishing = doc._status === 'published'
+    const shouldSchedule = doc.publish_date && new Date(doc.publish_date) > new Date()
+    const scheduleChanged = doc.publish_date !== previousDoc?.publish_date
     try {
       if (isPublishing) {
-        // if the post is being manually published, remove any pending schedulers.
+        // if the post is being published, remove any pending schedulers.
         // there should only ever be a single result here in practice
-        const existingSchedules = await payload.find({
+        const existingSchedules: PaginatedDocs<ScheduledPost> = await payload.find({
           collection: 'scheduled_posts',
           where: {
             post: {
               equals: {
-                value: originalDoc?.id,
+                value: doc?.id,
                 relationTo: collection.slug,
               },
             },
@@ -37,7 +38,7 @@ export default function syncSchedule(
           },
         })
 
-        return data
+        return doc
       }
 
       if (scheduleChanged) {
@@ -47,7 +48,7 @@ export default function syncSchedule(
           where: {
             post: {
               equals: {
-                value: originalDoc?.id,
+                value: doc?.id,
                 relationTo: 'articles',
               },
             },
@@ -60,10 +61,10 @@ export default function syncSchedule(
             collection: 'scheduled_posts',
             data: {
               post: {
-                value: originalDoc?.id,
+                value: doc?.id,
                 relationTo: collection.slug,
               },
-              date: data.publish_date,
+              date: doc.publish_date,
               status: 'queued',
             },
           })
@@ -74,6 +75,6 @@ export default function syncSchedule(
       console.error(error)
     }
 
-    return data
+    return doc
   }
 }

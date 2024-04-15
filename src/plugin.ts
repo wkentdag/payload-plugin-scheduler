@@ -31,10 +31,7 @@ export const ScheduledPostPlugin =
               fields: [...collection.fields, PublishDateField(scheduleConfig.interval!)],
               hooks: {
                 ...collection.hooks,
-                beforeChange: [
-                  ...(existingHooks?.beforeChange || []),
-                  syncSchedule(scheduleConfig),
-                ],
+                afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig)],
                 afterDelete: [
                   ...(existingHooks?.afterDelete || []),
                   // deleteFromSearch(scheduleConfig),

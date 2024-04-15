@@ -3,19 +3,7 @@ import { JobCallback } from 'node-schedule'
 import { ScheduledPost } from './types'
 import { Payload } from 'payload'
 import { debug } from './util'
-
-type PaginatedDocs<T = any> = {
-  docs: T[]
-  hasNextPage: boolean
-  hasPrevPage: boolean
-  limit: number
-  nextPage?: null | number | undefined
-  page?: number
-  pagingCounter: number
-  prevPage?: null | number | undefined
-  totalDocs: number
-  totalPages: number
-}
+import { PaginatedDocs } from 'payload/dist/database/types'
 
 export async function getUpcomingPosts(
   interval: number,
