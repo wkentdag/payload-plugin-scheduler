@@ -1,12 +1,12 @@
 @import '~payload/scss';
 
-.custom-color-picker {
-  &__colors {
+.scheduler-publish-at {
+  p {
+    padding-top: 0.5rem;
+    color: $color;
     display: flex;
-    flex-wrap: wrap;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    flex-direction: row;
+    align-items: center;
   }
 }
 
