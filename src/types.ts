@@ -1,8 +1,9 @@
-import { ValueWithRelation } from 'payload/types'
+import { CollectionConfig, ValueWithRelation } from 'payload/types'
 
 export interface ScheduledPostConfig {
   collections: string[]
   interval?: number
+  scheduledPosts?: Partial<Omit<CollectionConfig, 'slug'>>
 }
 
 export type ScheduledPost = {

@@ -1,58 +1,64 @@
 import { CollectionConfig } from 'payload/types'
 import { ScheduledPostConfig } from '../types'
+import { merge } from 'ts-deepmerge'
 
-const ScheduledPosts = ({ collections, interval = 15 }: ScheduledPostConfig): CollectionConfig => {
-  return {
-    slug: 'scheduled_posts',
-    labels: {
-      plural: 'Scheduled Posts',
-      singular: 'Scheduled Post',
-    },
-    access: {
-      create: () => false,
-      update: () => false,
-      read: () => true,
-    },
-    // admin: {
-    //   hidden: true,
-    // },
-    fields: [
-      {
-        name: 'post',
-        type: 'relationship',
-        unique: true,
-        index: true,
-        relationTo: collections,
-        admin: {
-          readOnly: true,
-        },
+const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =>
+  merge(
+    {
+      slug: 'scheduled_posts',
+      labels: {
+        plural: 'Scheduled Posts',
+        singular: 'Scheduled Post',
       },
-      {
-        name: 'date',
-        type: 'date',
-        admin: {
-          date: {
-            pickerAppearance: 'dayAndTime',
-            timeIntervals: interval,
+      access: {
+        create: () => false,
+        read: () => true,
+      },
+      admin: {
+        hidden: true,
+      },
+      fields: [
+        {
+          name: 'post',
+          type: 'relationship',
+          unique: true,
+          index: true,
+          relationTo: scheduleConfig.collections,
+          admin: {
+            readOnly: true,
           },
         },
-      },
-      {
-        name: 'status',
-        type: 'select',
-        options: [
-          {
-            value: 'queued',
-            label: 'Queued',
+        {
+          name: 'date',
+          type: 'date',
+          admin: {
+            date: {
+              pickerAppearance: 'dayAndTime',
+              timeIntervals: scheduleConfig.interval,
+            },
+            readOnly: true,
           },
-          {
-            value: 'complete',
-            label: 'Complete',
+        },
+        {
+          name: 'status',
+          type: 'select',
+          options: [
+            {
+              value: 'queued',
+              label: 'Queued',
+            },
+            {
+              value: 'complete',
+              label: 'Complete',
+            },
+          ],
+          admin: {
+            readOnly: true,
           },
-        ],
-      },
-    ],
-  }
-}
+        },
+      ].filter(Boolean),
+    },
+    scheduleConfig?.scheduledPosts || {},
+  ) as CollectionConfig
 
 export default ScheduledPosts
