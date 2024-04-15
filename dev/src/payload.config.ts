@@ -1,19 +1,12 @@
 import { buildConfig } from 'payload/config';
 import path from 'path';
 import Users from './collections/Users';
-import Examples from './collections/Examples';
+import Pages from './collections/Pages'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { webpackBundler } from '@payloadcms/bundler-webpack'
 import { slateEditor } from '@payloadcms/richtext-slate'
-import { AlgoliaSearchPlugin } from '../../src'
-import VersionedExamples from './collections/VersionedExamples'
-
-export interface SearchRecord {
-  title: string
-  text: string
-  collection: string
-  custom: 'attribute'
-}
+import { ScheduledPostPlugin } from '../../src'
+import Posts from './collections/Posts'
 
 export default buildConfig({
   admin: {
@@ -36,7 +29,7 @@ export default buildConfig({
     },
   },
   editor: slateEditor({}),
-  collections: [Examples, VersionedExamples, Users],
+  collections: [Pages, Posts, Users],
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
   },
@@ -44,22 +37,9 @@ export default buildConfig({
     schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
   },
   plugins: [
-    AlgoliaSearchPlugin({
-      algolia: {
-        appId: process.env.ALGOLIA_APPLICATION_ID,
-        apiKey: process.env.ALGOLIA_ADMIN_API_KEY,
-        index: process.env.ALGOLIA_INDEX,
-      },
-      collections: ['examples', 'versioned_examples'],
-      waitForHook: true,
-      generateSearchAttributes: ({ doc: { title, text }, collection }): SearchRecord => {
-        return {
-          title,
-          text,
-          collection: collection.slug,
-          custom: 'attribute',
-        }
-      },
+    ScheduledPostPlugin({
+      collections: ['pages', 'posts'],
+      interval: 5,
     }),
   ],
   db: mongooseAdapter({

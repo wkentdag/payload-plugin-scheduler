@@ -1,5 +1,2 @@
-import createClient from './algolia'
-
-export { AlgoliaSearchPlugin } from './plugin'
-export { createClient }
-export type { AlgoliaSearchConfig } from './types'
+export { ScheduledPostPlugin } from './plugin'
+export type { ScheduledPostConfig } from './types'
