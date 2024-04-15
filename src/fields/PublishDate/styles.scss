@@ -1,0 +1,28 @@
+@import '~payload/scss';
+
+.custom-color-picker {
+  &__colors {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.chip {
+  border-radius: 50%;
+  border: $style-stroke-width-m solid #fff;
+  height: base(1.25);
+  width: base(1.25);
+  margin-right: base(.5);
+  box-shadow: none;
+
+  &--selected {
+    box-shadow: 0 0 0 $style-stroke-width-m $color-dark-gray;
+  }
+
+  &--clickable {
+    cursor: pointer;
+  }
+}
