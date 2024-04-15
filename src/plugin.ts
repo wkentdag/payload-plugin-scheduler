@@ -6,6 +6,7 @@ import syncSchedule from './hooks/syncSchedule'
 import { CollectionConfig } from 'payload/types'
 import PublishDateField from './fields/PublishDate'
 import ScheduledPosts from './collections/ScheduledPosts'
+import deleteSchedule from './hooks/deleteSchedule'
 
 export const ScheduledPostPlugin =
   (scheduleConfig: ScheduledPostConfig): Plugin =>
@@ -34,7 +35,7 @@ export const ScheduledPostPlugin =
                 afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig)],
                 afterDelete: [
                   ...(existingHooks?.afterDelete || []),
-                  // deleteFromSearch(scheduleConfig),
+                  deleteSchedule(scheduleConfig),
                 ],
               },
             } as CollectionConfig
