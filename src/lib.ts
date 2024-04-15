@@ -2,8 +2,7 @@ import db from 'debug'
 import { JobCallback } from 'node-schedule'
 import { ScheduledPost } from './types'
 import { Payload } from 'payload'
-
-const debug = db('payload-plugin-scheduler')
+import { debug } from './util'
 
 type PaginatedDocs<T = any> = {
   docs: T[]
@@ -23,8 +22,10 @@ export async function getUpcomingPosts(
   payload: Payload,
 ): Promise<PaginatedDocs<ScheduledPost>> {
   const now = new Date()
-  const nextInterval = new Date(now.getTime() + interval * 60000)
+  const nextInterval = new Date(now)
+  nextInterval.setMinutes(now.getMinutes() + interval)
 
+  debug(`Scanning for scheduled posts between \n${now} and \n${nextInterval}`)
   const publishSchedules = await payload.find({
     collection: 'scheduled_posts',
     where: {

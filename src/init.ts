@@ -1,11 +1,10 @@
-import db from 'debug'
 import { cancelJob, Job, scheduledJobs } from 'node-schedule'
 
 import { getUpcomingPosts, publishScheduledPost } from './lib'
 import { type ScheduledPostConfig } from './types'
 import { type Payload } from 'payload'
 
-const debug = db('payload-plugin-scheduler')
+import { debug } from './util'
 
 export const onInit = (config: ScheduledPostConfig, payload: Payload) => {
   debug('init')

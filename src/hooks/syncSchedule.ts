@@ -1,6 +1,8 @@
 import { CollectionBeforeChangeHook } from 'payload/types'
 import { ScheduledPostConfig } from '../types'
 
+import { debug } from '../util'
+
 export default function syncSchedule(
   scheduleConfig: ScheduledPostConfig,
 ): CollectionBeforeChangeHook {
@@ -8,8 +10,7 @@ export default function syncSchedule(
     const isPublishing = data._status === 'published'
     const shouldSchedule = data.publish_date && new Date(data.publish_date) > new Date()
     const scheduleChanged = data.publish_date !== originalDoc?.publish_date
-
-    console.log({ data, originalDoc })
+    debug(collection?.slug, originalDoc?.id)
     try {
       if (isPublishing) {
         // if the post is being manually published, remove any pending schedulers.
@@ -59,7 +60,7 @@ export default function syncSchedule(
             collection: 'scheduled_posts',
             data: {
               post: {
-                value: originalDoc.id,
+                value: originalDoc?.id,
                 relationTo: collection.slug,
               },
               date: data.publish_date,

@@ -1,8 +1,8 @@
 {
-  "name": "payload-plugin-algolia",
+  "name": "payload-plugin-scheduler",
   "version": "0.1.0",
-  "homepage:": "https://github.comw/wkentdag/payload-plugin-algolia",
-  "repository": "git@github.com:wkentdag/payload-plugin-algolia.git",
+  "homepage:": "https://github.comw/wkentdag/payload-plugin-scheduler",
+  "repository": "git@github.com:wkentdag/payload-plugin-scheduler.git",
   "description": "Algolia search plugin for PayloadCMS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,10 @@
     "payload",
     "cms",
     "plugin",
-    "algolia"
+    "schedule",
+    "scheduler",
+    "cron",
+    "node-schedule"
   ],
   "scripts": {
     "build": "tsc",
