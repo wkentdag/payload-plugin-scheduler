@@ -1,0 +1,29 @@
+name: test
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+  push:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URI: ${{vars.DATABASE_URI}}
+      PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
+      ALGOLIA_APPLICATION_ID: ${{secrets.ALGOLIA_APPLICATION_ID}}
+      ALGOLIA_ADMIN_API_KEY: ${{secrets.ALGOLIA_ADMIN_API_KEY}}
+      ALGOLIA_INDEX: ${{secrets.ALGOLIA_INDEX}}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18.20.2'
+          registry-url: 'https://registry.npmjs.org'
+      - run: yarn install
+      - run: yarn build
+      - name: 'Install `dev` folder deps'
+        run: cd dev && yarn install
+      - run: yarn test
+
+    
