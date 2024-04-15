@@ -39,7 +39,12 @@ export default buildConfig({
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts'],
-      interval: 5,
+      interval: 2,
+      scheduledPosts: {
+        admin: {
+          hidden: false,
+        },
+      },
     }),
   ],
   db: mongooseAdapter({
