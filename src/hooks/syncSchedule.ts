@@ -42,12 +42,20 @@ export default function syncSchedule(
 
       if (shouldSchedule) {
         debug('Scheduling post', collection.slug, doc.id)
+        let dbValue = doc.id
+
+        // nb without this payload will throw a ValidationError
+        // seems like a bug
+        if (payload.db.defaultIDType === 'number') {
+          dbValue = Number(doc.id)
+        }
+
         // if the new date is in the future, schedule it
         await payload.create({
           collection: 'scheduled_posts',
           data: {
             post: {
-              value: Number(doc.id),
+              value: dbValue,
               relationTo: collection.slug,
             },
             date: doc.publish_date,

@@ -4,7 +4,7 @@ import { debug } from '../util'
 
 export default function deleteSchedule(scheduleConfig: ScheduledPostConfig): CollectionBeforeDeleteHook {
   return async ({ id, collection, req }) => {
-    debug(`deleteSchedule ${collection} ${id}`)
+    debug(`deleteSchedule ${collection.slug} ${id}`)
     try {
       await req.payload.delete({
         collection: 'scheduled_posts',

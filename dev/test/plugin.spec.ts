@@ -192,9 +192,9 @@ describe('Plugin tests', () => {
       id: draft.id,
     })
 
-    await waitFor(1000)
+    await waitFor(2000)
 
     const updatedSchedules = await findSchedule(draft.id)
     expect(updatedSchedules.totalDocs).toBe(0)
-  })
+  }, 9000)
 })
