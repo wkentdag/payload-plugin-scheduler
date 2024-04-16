@@ -14,21 +14,21 @@ export const baseConfig: Config = {
   admin: {
     user: Users.slug,
     bundler: webpackBundler(),
-    // webpack: config => {
-    //   const newConfig = {
-    //     ...config,
-    //     resolve: {
-    //       ...config.resolve,
-    //       alias: {
-    //         ...(config?.resolve?.alias || {}),
-    //         react: path.join(__dirname, '../node_modules/react'),
-    //         'react-dom': path.join(__dirname, '../node_modules/react-dom'),
-    //         payload: path.join(__dirname, '../node_modules/payload'),
-    //       },
-    //     },
-    //   }
-    //   return newConfig
-    // },
+    webpack: config => {
+      const newConfig = {
+        ...config,
+        resolve: {
+          ...config.resolve,
+          alias: {
+            ...(config?.resolve?.alias || {}),
+            react: path.join(__dirname, '../node_modules/react'),
+            'react-dom': path.join(__dirname, '../node_modules/react-dom'),
+            payload: path.join(__dirname, '../node_modules/payload'),
+          },
+        },
+      }
+      return newConfig
+    },
   },
   editor: slateEditor({}),
   collections: [Pages, Posts, Users],
