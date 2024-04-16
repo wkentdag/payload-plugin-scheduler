@@ -51,7 +51,7 @@ export const baseConfig: Config = {
   ],
   db: postgresAdapter({
     pool: {
-      connectionString: 'postgres://postgres:postgres@localhost:5432/postgres',
+      connectionString: process.env.DATABASE_URI_PG,
     },
   }),
 }

@@ -27,7 +27,7 @@ jobs:
           - 5432:5432
       
     env:
-      DATABASE_URI: ${{vars.DATABASE_URI}}
+      DATABASE_URI_PG: ${{secrets.DATABASE_URI_PG}}
       PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
     steps:
       - uses: actions/checkout@v2

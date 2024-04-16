@@ -90,8 +90,8 @@ describe('Plugin tests', () => {
       const { totalDocs } = await findSchedule(draft.id)
       expect(totalDocs).toBe(1)
 
-      // wait for the interval + 500ms
-      await waitFor(1000 * 60 * INTERVAL + 500)
+      // wait for the interval + extra
+      await waitFor(1000 * 60 * INTERVAL + 5000)
 
       const publishedDraft = await payload.findByID({
         collection: 'posts',
