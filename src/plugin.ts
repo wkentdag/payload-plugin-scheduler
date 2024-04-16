@@ -7,6 +7,7 @@ import { CollectionConfig } from 'payload/types'
 import PublishDateField from './fields/PublishDate'
 import ScheduledPosts from './collections/ScheduledPosts'
 import deleteSchedule from './hooks/deleteSchedule'
+import boundPublishDate from './hooks/boundPublishDate'
 
 export const ScheduledPostPlugin =
   (scheduleConfig: ScheduledPostConfig): Plugin =>
@@ -36,6 +37,10 @@ export const ScheduledPostPlugin =
                 afterDelete: [
                   ...(existingHooks?.afterDelete || []),
                   deleteSchedule(scheduleConfig),
+                ],
+                beforeChange: [
+                  ...(existingHooks?.beforeChange || []),
+                  boundPublishDate(scheduleConfig),
                 ],
               },
             } as CollectionConfig
