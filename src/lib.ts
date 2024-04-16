@@ -34,42 +34,32 @@ export async function getUpcomingPosts(
         },
       ],
     },
+    depth: 0,
   })
 
   // @ts-expect-error
   return publishSchedules
 }
 
-export function publishScheduledPost(
+export async function publishScheduledPost(
   { id, post }: Pick<ScheduledPost, 'id' | 'post'>,
   payload: Payload,
-): JobCallback {
-  return async fireDate => {
-    debug(`publishing schedule ${id}`)
+) {
+  debug(`Publishing ${post.relationTo} ${post.value}`)
 
-    try {
-      // publish the post itself
-      await Promise.all([
-        payload.update({
-          id: post.value.id,
-          collection: post.relationTo,
-          data: {
-            _status: 'published',
-          },
-        }),
-        // mark the schedule as complete
-        payload.update({
-          collection: 'scheduled_posts',
-          id,
-          data: {
-            status: 'complete',
-          },
-        }),
-      ])
-      debug(`published!`)
-    } catch (error) {
-      console.error(`Failed to publish ${id}`)
-      console.error(error)
-    }
+  try {
+    await payload.update({
+      id: post.value,
+      collection: post.relationTo,
+      data: {
+        _status: 'published',
+      },
+    }),
+      payload.logger.info(`[payload-plugin-scheduler] Published ${post.relationTo} ${post.value}`)
+  } catch (error) {
+    payload.logger.error(
+      `[payload-plugin-scheduler] Failed to publish ${post.relationTo} ${post.value}`,
+    )
+    payload.logger.error(error)
   }
 }
