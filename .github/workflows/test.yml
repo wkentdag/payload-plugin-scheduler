@@ -6,7 +6,7 @@ on:
   push:
     branches: [ main ]
 jobs:
-  test:
+  test-pg:
     runs-on: ubuntu-latest
     services:
       # Label used to access the service container
@@ -41,5 +41,22 @@ jobs:
       - name: 'Install `dev` folder deps'
         run: cd dev && yarn install
       - run: yarn test
+  test-mongo:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URI_MONGO: ${{secrets.DATABASE_URI_MONGO }}
+      DB: 'mongo'
+    steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-node@v2
+          with:
+            node-version: '18.20.2'
+            registry-url: 'https://registry.npmjs.org'
+        - run: npm i -g yarn
+        - run: yarn install
+        - run: yarn build
+        - name: 'Install `dev` folder deps'
+          run: cd dev && yarn install
+        - run: yarn test
 
     
