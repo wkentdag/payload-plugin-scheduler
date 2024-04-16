@@ -7,7 +7,7 @@ export default function deleteSchedule(
   return async ({ doc, collection, req: { payload } }) => {
     try {
       await payload.delete({
-        collection: 'schedule_posts',
+        collection: 'post_schedules',
         where: {
           'post.value': {
             equals: doc.id,

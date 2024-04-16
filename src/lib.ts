@@ -3,15 +3,14 @@ import { type ScheduledPost } from './types'
 import { type Payload } from 'payload'
 import { debug } from './util'
 import { type PaginatedDocs } from 'payload/dist/database/types'
-import { type ValueWithRelation } from 'payload/types'
+import { addMinutes } from 'date-fns'
 
 export async function getUpcomingPosts(
   interval: number,
   payload: Payload,
 ): Promise<PaginatedDocs<ScheduledPost>> {
   const now = new Date()
-  const nextInterval = new Date(now)
-  nextInterval.setMinutes(now.getMinutes() + interval)
+  const nextInterval = addMinutes(now, interval)
 
   debug(`Scanning for scheduled posts between \n${now} and \n${nextInterval}`)
   const publishSchedules = await payload.find({

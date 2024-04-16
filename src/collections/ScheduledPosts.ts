@@ -10,10 +10,10 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
         plural: 'Scheduled Posts',
         singular: 'Scheduled Post',
       },
-      access: {
-        create: () => false,
-        read: () => true,
-      },
+      // access: {
+      //   // create: () => false,
+      //   read: () => true,
+      // },
       admin: {
         hidden: true,
       },
@@ -22,8 +22,9 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
           name: 'post',
           type: 'relationship',
           unique: true,
-          index: true,
-          relationTo: scheduleConfig.collections,
+          required: true,
+          relationTo: [...scheduleConfig.collections],
+          hasMany: false,
           admin: {
             readOnly: true,
           },
