@@ -49,7 +49,7 @@ export const baseConfig: Config = {
   ],
   db: postgresAdapter({
     pool: {
-      connectionString: 'postgres://127.0.0.1:5432/postgres',
+      connectionString: 'postgres://localhost:5432/postgres',
     },
   }),
 }
