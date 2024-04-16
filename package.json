@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "homepage:": "https://github.comw/wkentdag/payload-plugin-scheduler",
   "repository": "git@github.com:wkentdag/payload-plugin-scheduler.git",
-  "description": "Algolia search plugin for PayloadCMS",
+  "description": "Scheduled posts plugin for PayloadCMS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
@@ -47,7 +47,7 @@
     "eslint-plugin-import": "2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^29.7.0",
-    "payload": "^2.0.14",
+    "payload": "^2.12.1",
     "prettier": "^2.7.1",
     "react": "^18.0.0",
     "release-it": "^17.2.0",

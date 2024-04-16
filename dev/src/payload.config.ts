@@ -7,6 +7,7 @@ import { webpackBundler } from '@payloadcms/bundler-webpack'
 import { slateEditor } from '@payloadcms/richtext-slate'
 import { ScheduledPostPlugin } from '../../src'
 import Posts from './collections/Posts'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 
 export default buildConfig({
   admin: {
@@ -39,7 +40,7 @@ export default buildConfig({
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts'],
-      interval: 2,
+      interval: 1,
       scheduledPosts: {
         admin: {
           hidden: false,
@@ -47,7 +48,16 @@ export default buildConfig({
       },
     }),
   ],
-  db: mongooseAdapter({
-    url: process.env.DATABASE_URI,
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URI_PG,
+    },
   }),
+  // db: mongooseAdapter({
+  //   url: process.env.DATABASE_URI,
+  //   transactionOptions: {
+  //     maxTimeMS: 10000,
+  //     maxCommitTimeMS: 10000,
+  //   },
+  // }),
 })
