@@ -8,6 +8,7 @@ import { Label } from 'payload/components/forms';
 
 // we can use existing Payload types easily
 import { Props } from 'payload/components/fields/Text';
+import { stringify } from 'qs'
 
 // we'll import and reuse our existing validator function on the frontend, too
 // import { validateHexColor } from './config';
@@ -43,7 +44,7 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> = (
   const pubDate = value && typeof value === 'object' ? value as Date : new Date(value as string)
 
   const status = useFormFields(([fields]) => fields._status)
-  const scheduled = value && status.value === 'draft' && pubDate > new Date()
+  const scheduled = !!(value && status.value === 'draft' && pubDate > new Date())
   const schedulePending = value !== initialValue
 
   // verify that scheduled posts actually have a job
@@ -51,19 +52,37 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> = (
   const [queued, setQueued] = useState<boolean>()
   useEffect(() => {
     async function verifySchedule() {
-      const req = await fetch(`/api/scheduled_posts?where[or][0][and][0][post][equals][relationTo]=${doc.collection?.slug}&where[or][0][and][0][post][equals][value]=${doc.id}`)
-      const schedules = await req.json()
-      if (schedules.docs[0]) {
-        setQueued(schedules.docs[0].date === initialValue)
+      try {
+        const qs = {
+          where: {
+            and: [
+              {
+                'post.value': {
+                  equals: doc.id,
+                },
+              },
+              {
+                'post.relationTo': {
+                  equals: doc.collection?.slug,
+                },
+              },
+            ],
+          },
+        }
+        const req = await fetch(`/api/scheduled_posts?${stringify(qs)}`)
+        const schedules = await req.json()
+        if (schedules.docs[0]) {
+          setQueued(schedules.docs[0].date === initialValue)
+        }
+      } catch (error) {
+        console.error('caught error')
+        setQueued(false)
+
       }
     }
 
     if (scheduled) {
-      try {
-        verifySchedule()
-      } catch (error) {
-        setQueued(false)
-      }
+      verifySchedule()
     }
   }, [doc])
 
@@ -92,6 +111,7 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> = (
         value={value as Date | undefined}
         onChange={setValue}
         datePickerProps={datePickerProps}
+        components={{}}
       />
       {
         scheduled &&
