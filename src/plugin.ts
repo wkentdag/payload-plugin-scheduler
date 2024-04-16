@@ -1,17 +1,18 @@
 import type { Config, Plugin } from 'payload/config'
 
+import type { CollectionConfig } from 'payload/types'
 import type { ScheduledPostConfig } from './types'
 import { onInit } from './init'
 import syncSchedule from './hooks/syncSchedule'
-import { CollectionConfig } from 'payload/types'
 import PublishDateField from './fields/PublishDate'
 import ScheduledPosts from './collections/ScheduledPosts'
 import deleteSchedule from './hooks/deleteSchedule'
 import boundPublishDate from './hooks/boundPublishDate'
 
 export const ScheduledPostPlugin =
-  (scheduleConfig: ScheduledPostConfig): Plugin =>
+  (incomingScheduleConfig: ScheduledPostConfig): Plugin =>
   (incomingConfig: Config): Config => {
+    const scheduleConfig = {...incomingScheduleConfig }
     if (!scheduleConfig.interval) {
       scheduleConfig.interval = 15
     }
@@ -28,7 +29,7 @@ export const ScheduledPostPlugin =
           const isEnabled = enabledCollections.indexOf(collection.slug) > -1
 
           if (isEnabled) {
-            return {
+            const decoratedConfig: CollectionConfig = {
               ...collection,
               fields: [...collection.fields, PublishDateField(scheduleConfig)],
               hooks: {
@@ -43,7 +44,8 @@ export const ScheduledPostPlugin =
                   boundPublishDate(scheduleConfig),
                 ],
               },
-            } as CollectionConfig
+            }
+            return decoratedConfig
           }
 
           return collection

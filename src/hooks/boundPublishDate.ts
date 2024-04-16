@@ -1,10 +1,12 @@
-import { CollectionBeforeChangeHook } from 'payload/types'
-import { ScheduledPostConfig } from '../types'
+import type { CollectionBeforeChangeHook } from 'payload/types'
+import type { ScheduledPostConfig } from '../types'
 
 export default function boundPublishDate(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   scheduleConfig: ScheduledPostConfig,
 ): CollectionBeforeChangeHook {
   return ({ data }) => {
+    // eslint-disable-next-line no-underscore-dangle
     const isPublishing = data?._status === 'published'
     const pubDate = data?.publish_date ? new Date(data.publish_date) : undefined
     if (isPublishing && pubDate && pubDate > new Date()) {
@@ -12,8 +14,7 @@ export default function boundPublishDate(
         ...data,
         publish_date: new Date(),
       }
-    } else {
-      return data
     }
+    return data
   }
 }

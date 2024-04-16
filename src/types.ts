@@ -1,4 +1,4 @@
-import { CollectionConfig, ValueWithRelation } from 'payload/types'
+import type { CollectionConfig, ValueWithRelation } from 'payload/types'
 
 export interface ScheduledPostConfig {
   collections: string[]
@@ -6,7 +6,7 @@ export interface ScheduledPostConfig {
   scheduledPosts?: Partial<Omit<CollectionConfig, 'slug'>>
 }
 
-export type ScheduledPost = {
+export interface ScheduledPost {
   id: string | number
   post: ValueWithRelation
   date: string

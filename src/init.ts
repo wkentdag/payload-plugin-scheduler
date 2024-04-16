@@ -1,12 +1,12 @@
 import { cancelJob, Job, scheduledJobs } from 'node-schedule'
 
+import { type Payload } from 'payload'
 import { getUpcomingPosts, publishScheduledPost } from './lib'
 import { type ScheduledPostConfig } from './types'
-import { type Payload } from 'payload'
 
 import { debug } from './util'
 
-export const onInit = (config: ScheduledPostConfig, payload: Payload) => {
+export const onInit = (config: ScheduledPostConfig, payload: Payload): Job => {
   debug('init')
   const scanner = new Job('scanner', async () => {
     debug('scanning')
@@ -33,11 +33,11 @@ export const onInit = (config: ScheduledPostConfig, payload: Payload) => {
           debug('overwrite existing job')
           const canceled = cancelJob(id)
           if (!canceled) {
-            console.warn(`Error canceling existing job ${id}, duplicate jobs may exist`)
+            payload.logger.warn(`Error canceling existing job ${id}, duplicate jobs may exist`)
           }
         }
 
-        const job = new Job(id, async () => await publishScheduledPost({ id, post }, payload))
+        const job = new Job(id, publishScheduledPost({ post }, payload))
 
         const scheduled = job.schedule(date)
 

@@ -1,11 +1,11 @@
-import React from 'react';
-import { Props } from 'payload/components/views/Cell';
-import './styles.scss';
-import { formatDateTime } from '../util';
-import Icon from './Icon';
+import React from 'react'
+import { Props } from 'payload/components/views/Cell'
+import './styles.scss'
+import { formatDateTime } from '../util'
+import Icon from './Icon'
 
 const Cell: React.FC<Props> = ({ cellData }) => {
-  if (!cellData) return null;
+  if (!cellData) return null
 
   const pubDate = new Date(cellData as string)
   const scheduled = pubDate > new Date()
@@ -13,17 +13,13 @@ const Cell: React.FC<Props> = ({ cellData }) => {
   return (
     <div
       style={{
-        ...(scheduled ? { color: 'var(--color-warning-650' } : {})
+        ...(scheduled ? { color: 'var(--color-warning-650' } : {}),
       }}
     >
-      {
-        scheduled && (
-          <Icon />
-        )
-      }
+      {scheduled && <Icon />}
       {formatDateTime(new Date(cellData as string), false)}
-    </div >
+    </div>
   )
 }
 
-export default Cell;
+export default Cell

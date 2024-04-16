@@ -3,11 +3,13 @@ import { type ScheduledPostConfig } from '../types'
 import { debug } from '../util'
 
 export default function syncSchedule(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   scheduleConfig: ScheduledPostConfig,
 ): CollectionAfterChangeHook {
   return async ({ collection, doc, previousDoc, req }) => {
     const { payload } = req
     debug(`syncSchedule ${collection.slug} ${doc.id}`)
+    // eslint-disable-next-line no-underscore-dangle
     const isPublishing = doc._status === 'published'
     const shouldSchedule = doc?.publish_date && new Date(doc.publish_date) > new Date()
     const scheduleChanged = doc?.publish_date !== previousDoc?.publish_date
@@ -64,7 +66,7 @@ export default function syncSchedule(
           req,
         })
       }
-    } catch (error) {
+    } catch (error: unknown) {
       payload.logger.error('[payload-plugin-scheduler] Error scheduling post')
       payload.logger.error(error)
     }

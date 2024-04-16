@@ -1,7 +1,7 @@
-import { DateField } from 'payload/types'
+import type { DateField } from 'payload/types'
+import type { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
 import InputField from './components/InputField'
-import { ScheduledPostConfig } from '../../types'
-import { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
+import type { ScheduledPostConfig } from '../../types'
 import Cell from './components/Cell'
 
 const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {

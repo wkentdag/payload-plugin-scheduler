@@ -1,9 +1,9 @@
 import { type JobCallback } from 'node-schedule'
-import { type ScheduledPost } from './types'
 import { type Payload } from 'payload'
-import { debug } from './util'
 import { type PaginatedDocs } from 'payload/dist/database/types'
 import { addMinutes } from 'date-fns'
+import { debug } from './util'
+import { type ScheduledPost } from './types'
 
 export async function getUpcomingPosts(
   interval: number,
@@ -41,25 +41,27 @@ export async function getUpcomingPosts(
   return publishSchedules
 }
 
-export async function publishScheduledPost(
-  { id, post }: Pick<ScheduledPost, 'id' | 'post'>,
+export function publishScheduledPost(
+  { post }: Pick<ScheduledPost, 'post'>,
   payload: Payload,
-) {
-  debug(`Publishing ${post.relationTo} ${post.value}`)
+): JobCallback {
+  return async () => {
+    debug(`Publishing ${post.relationTo} ${post.value}`)
 
-  try {
-    await payload.update({
-      id: post.value,
-      collection: post.relationTo,
-      data: {
-        _status: 'published',
-      },
-    }),
+    try {
+      await payload.update({
+        id: post.value,
+        collection: post.relationTo,
+        data: {
+          _status: 'published',
+        },
+      })
       payload.logger.info(`[payload-plugin-scheduler] Published ${post.relationTo} ${post.value}`)
-  } catch (error) {
-    payload.logger.error(
-      `[payload-plugin-scheduler] Failed to publish ${post.relationTo} ${post.value}`,
-    )
-    payload.logger.error(error)
+    } catch (error: unknown) {
+      payload.logger.error(
+        `[payload-plugin-scheduler] Failed to publish ${post.relationTo} ${post.value}`
+      )
+      payload.logger.error(error)
+    }
   }
 }
