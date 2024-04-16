@@ -8,6 +8,8 @@ import { ScheduledPostPlugin } from '../../src'
 import Posts from './collections/Posts'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 
+export const INTERVAL = 1
+
 export const baseConfig: Config = {
   admin: {
     user: Users.slug,
@@ -39,7 +41,7 @@ export const baseConfig: Config = {
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts'],
-      interval: 5,
+      interval: INTERVAL,
       scheduledPosts: {
         admin: {
           hidden: false,
