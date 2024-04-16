@@ -15,7 +15,7 @@ import { Props } from 'payload/components/fields/Text';
 // Import the SCSS stylesheet
 import './styles.scss';
 import { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types';
-import { formatDateTime } from './util';
+import { formatDateTime } from '../util';
 import Icon from './Icon';
 import { useDocumentInfo } from 'payload/dist/admin/components/utilities/DocumentInfo';
 
@@ -69,10 +69,9 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> = (
 
   // https://payloadcms.com/docs/admin/customizing-css#overriding-built-in-styles
   let color = 'var(--color-warning-650)'
-  const pendingColor = 'var(--color-blue-650)'
 
   if (schedulePending) {
-    color = pendingColor
+    color = 'var(--color-blue-650)'
   }
 
   // if `publish_date` is in the future but there's no queued job, something's gone wrong
@@ -105,10 +104,10 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> = (
               </>
             ) : (
               <>
-                Scheduled for {formatDateTime(pubDate)}
-                </>
-              )
-            }
+                    Scheduled for {formatDateTime(pubDate)}
+              </>
+            )
+          }
         </p>
       }
     </div>
