@@ -34,8 +34,8 @@ export const ScheduledPostPlugin =
               hooks: {
                 ...collection.hooks,
                 afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig)],
-                afterDelete: [
-                  ...(existingHooks?.afterDelete || []),
+                beforeDelete: [
+                  ...(existingHooks?.beforeDelete || []),
                   deleteSchedule(scheduleConfig),
                 ],
                 beforeChange: [

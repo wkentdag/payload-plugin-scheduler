@@ -19,9 +19,18 @@ export default function syncSchedule(
         await payload.delete({
           collection: 'scheduled_posts',
           where: {
-            'post.value': {
-              equals: doc.id,
-            },
+            and: [
+              {
+                'post.value': {
+                  equals: doc.id,
+                },
+              },
+              {
+                'post.relationTo': {
+                  equals: collection.slug,
+                },
+              },
+            ],
           },
           req,
         })

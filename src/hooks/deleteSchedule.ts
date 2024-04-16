@@ -1,25 +1,33 @@
-import { CollectionAfterDeleteHook } from 'payload/types'
+import { CollectionBeforeDeleteHook } from 'payload/types'
 import { ScheduledPostConfig } from '../types'
+import { debug } from '../util'
 
-export default function deleteSchedule(
-  scheduleConfig: ScheduledPostConfig,
-): CollectionAfterDeleteHook {
-  return async ({ doc, collection, req: { payload } }) => {
+export default function deleteSchedule(scheduleConfig: ScheduledPostConfig): CollectionBeforeDeleteHook {
+  return async ({ id, collection, req }) => {
+    debug(`deleteSchedule ${collection} ${id}`)
     try {
-      await payload.delete({
-        collection: 'post_schedules',
+      await req.payload.delete({
+        collection: 'scheduled_posts',
         where: {
-          'post.value': {
-            equals: doc.id,
-          },
+          and: [
+            {
+              'post.value': {
+                equals: id,
+              },
+            },
+            {
+              'post.relationTo': {
+                equals: collection.slug,
+              },
+            },
+          ],
         },
+        req,
       })
     } catch (error) {
-      payload.logger.error({
-        err: `Error deleting schedule for ${collection.slug} ${doc.id}: ${error}`,
+      req.payload.logger.error({
+        err: `Error deleting schedule for ${collection.slug} ${id}: ${error}`,
       })
     }
-
-    return doc
   }
 }
