@@ -2,6 +2,7 @@ import { addMinutes } from 'date-fns'
 import { type Payload } from 'payload'
 
 const waitFor = (time: number) => new Promise(resolve => setTimeout(resolve, time))
+const MINS = 1
 
 describe('Plugin tests', () => {
   const payload = globalThis.payloadClient as Payload
@@ -75,7 +76,7 @@ describe('Plugin tests', () => {
     'publishes scheduled posts',
     async () => {
       const now = new Date()
-      const pubDate = addMinutes(now, 1)
+      const pubDate = addMinutes(now, MINS)
       const draft = await payload.create({
         collection: 'posts',
         data: {
@@ -87,7 +88,7 @@ describe('Plugin tests', () => {
       const { totalDocs } = await findSchedule(draft.id)
       expect(totalDocs).toBe(1)
 
-      await waitFor(1000 * 60 * 1)
+      await waitFor(1000 * 60 * MINS + 500)
 
       const publishedDraft = await payload.findByID({
         collection: 'posts',
@@ -98,6 +99,6 @@ describe('Plugin tests', () => {
       const { totalDocs: updatedTotalDocs } = await findSchedule(draft.id)
       expect(updatedTotalDocs).toBe(0)
     },
-    1000 * 60 * 2,
+    1000 * 60 * (MINS + 1),
   )
 })

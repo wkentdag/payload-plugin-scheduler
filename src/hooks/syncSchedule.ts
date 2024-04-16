@@ -7,7 +7,7 @@ export default function syncSchedule(
 ): CollectionAfterChangeHook {
   return async ({ collection, doc, previousDoc, req }) => {
     const { payload } = req
-    debug(`syncSchedule ${doc.id} ${typeof doc.id}`)
+    debug(`syncSchedule ${collection.slug} ${doc.id}`)
     const isPublishing = doc._status === 'published'
     const shouldSchedule = doc?.publish_date && new Date(doc.publish_date) > new Date()
     const scheduleChanged = doc?.publish_date !== previousDoc?.publish_date
@@ -48,8 +48,8 @@ export default function syncSchedule(
         })
       }
     } catch (error) {
-      console.error('Error scheduling post')
-      console.error(error)
+      payload.logger.error('[payload-plugin-scheduler] Error scheduling post')
+      payload.logger.error(error)
     }
 
     return doc

@@ -23,26 +23,26 @@ export const onInit = (config: ScheduledPostConfig, payload: Payload) => {
     debug(`${queued.length} posts to schedule`)
 
     // create a job for each document,
-    //  scheduled to fire at it at its publish_date
+    //  scheduled to fire at its publish_date
     await Promise.all(
       queued.map(async schedule => {
         const { date, post } = schedule
         const id = schedule.id.toString()
-        // override any existing job for this same document
+        // overwrite any existing job for this same document
         if (Object.keys(scheduledJobs).includes(id)) {
-          debug('overriding existing job')
+          debug('overwrite existing job')
           const canceled = cancelJob(id)
           if (!canceled) {
             console.warn(`Error canceling existing job ${id}, duplicate jobs may exist`)
           }
         }
 
-        const job = new Job(id, publishScheduledPost({ id, post }, payload))
+        const job = new Job(id, async () => await publishScheduledPost({ id, post }, payload))
 
         const scheduled = job.schedule(date)
 
         if (!scheduled) {
-          console.error(`Failed to schedule job ${id} at ${date}`)
+          payload.logger.error(`[payload-plugin-scheduler] Failed to schedule post ${id}`)
         }
 
         return job
