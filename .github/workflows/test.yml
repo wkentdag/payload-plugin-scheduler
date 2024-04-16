@@ -8,18 +8,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+      
     env:
       DATABASE_URI: ${{vars.DATABASE_URI}}
       PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
-      ALGOLIA_APPLICATION_ID: ${{secrets.ALGOLIA_APPLICATION_ID}}
-      ALGOLIA_ADMIN_API_KEY: ${{secrets.ALGOLIA_ADMIN_API_KEY}}
-      ALGOLIA_INDEX: ${{secrets.ALGOLIA_INDEX}}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '18.20.2'
           registry-url: 'https://registry.npmjs.org'
+      - run: npm i -g yarn
       - run: yarn install
       - run: yarn build
       - name: 'Install `dev` folder deps'
