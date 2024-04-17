@@ -10,10 +10,10 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
         plural: 'Scheduled Posts',
         singular: 'Scheduled Post',
       },
-      // access: {
-      //   // create: () => false,
-      //   read: () => true,
-      // },
+      access: {
+        create: () => false,
+        read: () => true,
+      },
       admin: {
         hidden: true,
       },
