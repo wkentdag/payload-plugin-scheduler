@@ -1,6 +1,5 @@
 import React from 'react'
 import { Props } from 'payload/components/views/Cell'
-import './styles.scss'
 import { formatDateTime } from '../util'
 import Icon from './Icon'
 

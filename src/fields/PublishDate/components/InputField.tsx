@@ -1,26 +1,14 @@
 import React, { useEffect, useState } from 'react'
-
-// this is how we'll interface with Payload itself
-import { useFieldType, DateTimeInput, useFormFields } from 'payload/components/forms'
-import { useDocumentInfo } from 'payload/dist/admin/components/utilities/DocumentInfo'
-
-// we'll re-use the built in Label component directly from Payload
-import { Label } from 'payload/components/forms'
-
-// we can use existing Payload types easily
-import { Props } from 'payload/components/fields/Text'
 import { stringify } from 'qs'
 
-// we'll import and reuse our existing validator function on the frontend, too
-// import { validateHexColor } from './config';
+import { useFieldType, DateTimeInput, useFormFields, Label } from 'payload/components/forms'
+import { useDocumentInfo } from 'payload/dist/admin/components/utilities/DocumentInfo'
+import { type Props } from 'payload/components/fields/Text'
+import { type ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
 
-// Import the SCSS stylesheet
-import './styles.scss'
-import { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
 import { formatDateTime } from '../util'
 import Icon from './Icon'
-
-const baseClass = 'scheduler-publish-at'
+import { text } from './styles'
 
 // https://payloadcms.com/blog/building-a-custom-field
 // eslint-disable-next-line no-unused-vars
@@ -36,7 +24,6 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
       setValue,
     } = useFieldType({
       path,
-      // validate: validateHexColor,
     })
 
     // db returns string, updates from date-picker return Date
@@ -99,8 +86,13 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
       color = 'var(--color-error-650)'
     }
 
+    const style = {
+      ...text,
+      color,
+    }
+
     return (
-      <div className={baseClass}>
+      <div>
         <Label htmlFor={path} label={label} required={required} />
         <DateTimeInput
           path={path}
@@ -110,7 +102,7 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
           components={{}}
         />
         {scheduled && (
-          <p style={{ color }}>
+          <p style={style}>
             <Icon color={color} />
             {scheduledButNotQueued ? (
               <>Scheduling error</>
