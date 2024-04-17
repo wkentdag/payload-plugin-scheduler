@@ -13,7 +13,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "simple-git-hooks": {
-    "pre-commit": "ynpx lint-staged"
+    "pre-commit": "npx lint-staged"
   },
   "keywords": [
     "payload",
