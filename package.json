@@ -35,7 +35,7 @@
     "lint:fix": "eslint --fix --ext .ts,.tsx src",
     "clean": "rimraf dist && rimraf dev/yarn.lock",
     "prepare": "ynpx simple-git-hooks",
-    "prerelease": "yarn clean && yarn build && yarn test:all",
+    "prerelease": "yarn clean && yarn build && yarn test:postgres",
     "release": "release-it"
   },
   "author": "Will Kent-Daggett",
