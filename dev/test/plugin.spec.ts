@@ -1,15 +1,16 @@
 import { addMinutes } from 'date-fns'
 import { type Payload } from 'payload'
-import { INTERVAL } from '../src/payload.config'
+import { INTERVAL } from '../src/payload.base.config'
 
-const waitFor = (time: number) => new Promise(resolve => setTimeout(resolve, time))
+const waitFor = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
 // should match interval plugin option in payload.config.ts
 
 describe('Plugin tests', () => {
   const payload = globalThis.payloadClient as Payload
 
-  const findSchedule = id =>
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const findSchedule = (id: string | number) =>
     payload.find({
       collection: 'scheduled_posts',
       where: {
@@ -98,6 +99,7 @@ describe('Plugin tests', () => {
         id: draft.id,
       })
 
+      // eslint-disable-next-line no-underscore-dangle
       expect(publishedDraft._status).toBe('published')
       const { totalDocs: updatedTotalDocs } = await findSchedule(draft.id)
       expect(updatedTotalDocs).toBe(0)
