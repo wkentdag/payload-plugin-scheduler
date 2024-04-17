@@ -9,8 +9,9 @@ env:
   PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
   DEBUG: payload-plugin-scheduler
 jobs:
-  test-pg:
+  postgres:
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
     services:
       # Label used to access the service container
       postgres:
@@ -31,6 +32,7 @@ jobs:
       
     env:
       DATABASE_URI: postgres://postgres:postgres@localhost:5432/postgres
+      # config path is relative to /dev (jest rootDir)
       PAYLOAD_CONFIG_PATH: "src/payload.postgres.config.ts"
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +46,7 @@ jobs:
       - name: 'Install `dev` folder deps'
         run: cd dev && yarn install
       - run: yarn test
-  test-mongo:
+  mongo:
     runs-on: ubuntu-latest
     env:
       DATABASE_URI: mongodb://127.0.0.1/plugin-development
