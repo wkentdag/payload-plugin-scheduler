@@ -1,37 +1,31 @@
-# payload-plugin-algolia
+# payload-plugin-scheduler
 
-PayloadCMS plugin that syncs collections with Algolia search
+Payload plugin that enables scheduled publishing for draft-enabled collections, inspired by wordpress post scheduler.
 
-![ci status](https://github.com/wkentdag/payload-plugin-algolia/actions/workflows/test.yml/badge.svg)
+![ci status](https://github.com/wkentdag/payload-plugin-scheduler/actions/workflows/test.yml/badge.svg)
 
 ## Installation
 
 ```sh
-npm i payload-plugin-algolia
+npm i payload-plugin-scheduler
 ```
 
 ## Usage
-
-At a minimum, the plugin requires Algolia credentials and a list of enabled collections.
 
 ```ts
 // payload.config.ts
 
 import { buildConfig } from 'payload/config'
-import { AlgoliaSearchPlugin } from 'payload-plugin-algolia'
+import { ScheduledPostPlugin } from 'payload-plugin-scheduler'
 import Pages from './collections/Pages'
 import Posts from './collections/Posts'
 
 export default buildConfig({
   collections: [Pages, Posts],
   plugins: [
-    AlgoliaSearchPlugin({
-      algolia: {
-        appId: process.env.ALGOLIA_APP_ID,
-        apiKey: process.env.ALGOLIA_ADMIN_API_KEY,
-        index: process.env.ALGOLIA_INDEX
-      },
-      collections: ['pages', 'posts']
+    ScheduledPostPlugin({
+      collections: ['pages', 'posts'],
+      interval: 10,
     })
   ]
   // ...more config
@@ -41,69 +35,41 @@ export default buildConfig({
 
 ## Options
 
-### `generateSearchAttributes`
+### `collections: string[]`
 
-By default, the plugin will pass the entire document through to Algolia, with two appended keys:
+An array of collection slugs. All collections must have drafts enabled.
 
-* `objectID`: format `${collection}:${id}` eg `pages:1`
-* `collection`: the collection slug
+### `interval?: number`
 
-You can modify search attributes by providing a custom `generateSearchAttributes` function:
+Specify how frequently to check for scheduled posts (in minutes).
+This value will also be passed to the `DatePicker` component. Defaults to 5 mins.
 
-```ts
-import { type GenerateSearchAttributes } from 'plugin-payload-algolia'
 
-interface PageRecord {
-  title: string
-  text: string
-}
+### `scheduledPosts?: Partial<CollectionConfig>`
 
-interface PostRecord extends PageRecord {
-  image: string
-}
+Custom configuration for the scheduled posts collection that gets merged with the defaults.
 
-const generateSearchAttributes: GenerateSearchAtributes<
-  PageRecord | PostRecord
-> = async ({ doc, collection, req: { payload } }) => {
-  switch (collection.slug) {
-    case 'posts': {
-      if (doc.featured_image) {
-        const { url } = await payload.findById({
-          collection: 'media',
-          id: doc.featured_image as number
-        })
 
-        return {
-          ...doc,
-          image: url,
-        }
-      }
+## Approach
 
-      return doc
-    }
-    default:
-      return doc
-  }
-} 
-```
+In a nutshell, the plugin creates a `publish_date` field that it uses to determine whether a pending draft update needs to be scheduled.
 
-### `waitForHook`
+### `publish_date`
 
-> `Boolean`, default = `false`
+Custom Datetime field added to documents in enabled collections.
+Includes custom `Field` and `Cell` components that include schedule status in the client-side UI.
 
-Set to `true` to wait for algolia set / delete operations during the collection hooks.
+### `scheduled_posts`
+
+Collection added by the plugin to store pending schedule updates. Can be customized via `scheduledPosts` option.
+
+### Cron
+
+A configurable timer checks for any posts to be scheduled in the upcoming interval window. For each hit, it creates a separate job that's fired at that document's `publish_date` (via [node-schedule](https://github.com/node-schedule/node-schedule)). The idea here is that you can configure your interval window to avoid super long running tasks that are more prone to flaking.
+
 
 ## Notes
 
-> The current scope of the plugin is quite limited. PRs welcome!
+Since the plugin uses cron under the hood, it depends on a long-running server and is incompatible with short-lived/serverless environments like ECS, or Vercel if you're using Payload 3.0 beta.
 
-### Drafts
-Drafts are not indexed. If a document is unpublished, it gets removed from search results. Otherwise, draft updates to a published document have no effect.
-
-### Globals
-
-Globals are not supported for indexing.
-
-### Algolia search config
-
-The internal Algolia client accepts [all options](https://github.com/algolia/algoliasearch-client-javascript/blob/master/packages/algoliasearch/src/types/AlgoliaSearchOptions.ts). Beyond that, the rest of the setup for a typical Algolia configuration is outside the scope of the plugin (setting search attributes and facets, etc).
+I developed this plugin for a project that hasn't gone live yet. It has good test coverage but not in the wild yet -- there's your disclaimer.
