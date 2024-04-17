@@ -1,16 +1,18 @@
-import { Config, buildConfig } from 'payload/config'
+import { webpackBundler } from '@payloadcms/bundler-webpack'
+import { slateEditor } from '@payloadcms/richtext-slate'
+import { postgresAdapter } from '@payloadcms/db-postgres'
+
+import {  buildConfig } from 'payload/config'
 import path from 'path'
 import Users from './collections/Users'
 import Pages from './collections/Pages'
-import { webpackBundler } from '@payloadcms/bundler-webpack'
-import { slateEditor } from '@payloadcms/richtext-slate'
+// @ts-expect-error
 import { ScheduledPostPlugin } from '../../src'
 import Posts from './collections/Posts'
-import { postgresAdapter } from '@payloadcms/db-postgres'
 
 export const INTERVAL = 1
 
-export const baseConfig: Config = {
+export default buildConfig({
   admin: {
     user: Users.slug,
     bundler: webpackBundler(),
@@ -54,6 +56,4 @@ export const baseConfig: Config = {
       connectionString: process.env.DATABASE_URI_PG,
     },
   }),
-}
-
-export default buildConfig(baseConfig)
+})

@@ -1,10 +1,14 @@
 import mongoose from 'mongoose'
 
-module.exports = async function () {
-  // @TODO determine which db is in use and await connection end
-  mongoose.connection.dropDatabase()
-  mongoose.connection.close()
+module.exports = async function closeDb() {
+  if (process.env.PAYLOAD_CONFIG_PATH?.includes('mongo')) {
+    await mongoose.connection.dropDatabase()
+    await mongoose.connection.close()
+  }
 
-  // for some reason if you await, it hangs
-  globalThis.payloadClient.db.pool?.end()
+  if (process.env.PAYLOAD_CONFIG_PATH?.includes('postgres')) {
+      // for some reason if you await, it hangs
+      globalThis.payloadClient.db.pool?.end()
+  }
+
 }

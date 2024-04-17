@@ -5,6 +5,9 @@ on:
     types: [ opened, reopened, synchronize ]
   push:
     branches: [ main ]
+env:
+  PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
+  DEBUG: payload-plugin-scheduler
 jobs:
   test-pg:
     runs-on: ubuntu-latest
@@ -27,8 +30,8 @@ jobs:
           - 5432:5432
       
     env:
-      DATABASE_URI_PG: ${{secrets.DATABASE_URI_PG}}
-      PAYLOAD_SECRET: ${{secrets.PAYLOAD_SECRET}}
+      DATABASE_URI: postgres://postgres:postgres@localhost:5432/postgres
+      PAYLOAD_CONFIG_PATH: "src/payload.postgres.config.ts"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -44,8 +47,8 @@ jobs:
   test-mongo:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URI_MONGO: ${{secrets.DATABASE_URI_MONGO }}
-      DB: 'mongo'
+      DATABASE_URI: mongodb://127.0.0.1/plugin-development
+      PAYLOAD_CONFIG_PATH: "src/payload.mongo.config.ts"      
     steps:
         - uses: actions/checkout@v2
         - uses: actions/setup-node@v2
