@@ -14,7 +14,7 @@ export const ScheduledPostPlugin =
   (incomingConfig: Config): Config => {
     const scheduleConfig = {...incomingScheduleConfig }
     if (!scheduleConfig.interval) {
-      scheduleConfig.interval = 15
+      scheduleConfig.interval = 5
     }
 
     const config = { ...incomingConfig }
