@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 // this is how we'll interface with Payload itself
-import { useFieldType, DateTimeInput, useFormFields, useForm } from 'payload/components/forms'
+import { useFieldType, DateTimeInput, useFormFields } from 'payload/components/forms'
+import { useDocumentInfo } from 'payload/dist/admin/components/utilities/DocumentInfo'
 
 // we'll re-use the built in Label component directly from Payload
 import { Label } from 'payload/components/forms'
@@ -18,11 +19,11 @@ import './styles.scss'
 import { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
 import { formatDateTime } from '../util'
 import Icon from './Icon'
-import { useDocumentInfo } from 'payload/dist/admin/components/utilities/DocumentInfo'
 
 const baseClass = 'scheduler-publish-at'
 
 // https://payloadcms.com/blog/building-a-custom-field
+// eslint-disable-next-line no-unused-vars
 const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
   datePickerProps => props => {
     const { label, required } = props
@@ -41,6 +42,7 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
     // db returns string, updates from date-picker return Date
     const pubDate = value && typeof value === 'object' ? (value as Date) : new Date(value as string)
 
+    // eslint-disable-next-line no-underscore-dangle
     const status = useFormFields(([fields]) => fields._status)
     const scheduled = !!(value && status.value === 'draft' && pubDate > new Date())
     const schedulePending = value !== initialValue
@@ -73,6 +75,7 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
             setQueued(schedules.docs[0].date === initialValue)
           }
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('caught error')
           setQueued(false)
         }

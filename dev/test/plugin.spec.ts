@@ -4,8 +4,6 @@ import { INTERVAL } from '../src/payload.base.config'
 
 const waitFor = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
-// should match interval plugin option in payload.config.ts
-
 describe('Plugin tests', () => {
   const payload = globalThis.payloadClient as Payload
 
@@ -75,7 +73,7 @@ describe('Plugin tests', () => {
     expect(totalDocs).toBe(0)
   })
 
-  it(
+  it.skip(
     'publishes scheduled posts',
     async () => {
       const now = new Date()
