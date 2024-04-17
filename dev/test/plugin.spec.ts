@@ -73,7 +73,7 @@ describe('Plugin tests', () => {
     expect(totalDocs).toBe(0)
   })
 
-  it.skip(
+  it(
     'publishes scheduled posts',
     async () => {
       const now = new Date()
