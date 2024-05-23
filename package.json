@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
-    "node": "18.20.2"
+    "node": ">=18.20.2"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
