@@ -31,6 +31,7 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
         },
         {
           name: 'date',
+          index: true,
           type: 'date',
           admin: {
             date: {
@@ -42,6 +43,7 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
         },
         {
           name: 'status',
+          index: true,
           type: 'select',
           options: [
             {
