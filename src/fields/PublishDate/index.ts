@@ -13,6 +13,7 @@ const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
   return {
     name: 'publish_date',
     label: 'Publish Date',
+    index: true,
     type: 'date',
     admin: {
       date: datePickerProps,
