@@ -11,14 +11,14 @@ export default function syncSchedule(
     debug(`syncSchedule ${collection.slug} ${doc.id}`)
     // eslint-disable-next-line no-underscore-dangle
     const isPublishing = doc._status === 'published'
-    const shouldSchedule = doc?.publish_date && new Date(doc.publish_date) > new Date()
+    const publishInFuture = doc?.publish_date && new Date(doc.publish_date) > new Date()
     const scheduleChanged = doc?.publish_date !== previousDoc?.publish_date
     try {
       if (isPublishing || scheduleChanged) {
         debug('Deleting previous schedule')
         // if `publish_date` is modified, remove any pending schedulers.
         // there should only ever be a single result here in practice
-        await payload.delete({
+        const deleted = await payload.delete({
           collection: 'scheduled_posts',
           where: {
             and: [
@@ -37,12 +37,16 @@ export default function syncSchedule(
           req,
         })
 
+        debug(`$deleted ${deleted?.docs?.length} previous schedules`)
+
         if (isPublishing) {
+          // if the post is being published, we're done
           return doc
         }
       }
 
-      if (shouldSchedule) {
+      // if the publish date has changed and it's in the future, schedule it
+      if (scheduleChanged && publishInFuture) {
         debug('Scheduling post', collection.slug, doc.id)
         let dbValue = doc.id
 
@@ -52,8 +56,7 @@ export default function syncSchedule(
           dbValue = Number(doc.id)
         }
 
-        // if the new date is in the future, schedule it
-        await payload.create({
+        const res = await payload.create({
           collection: 'scheduled_posts',
           data: {
             post: {
@@ -65,6 +68,8 @@ export default function syncSchedule(
           },
           req,
         })
+                
+        debug(`[payload-plugin-scheduler] scheduled ${collection.slug}:${dbValue} ${res.id}`)
       }
     } catch (error: unknown) {
       payload.logger.error('[payload-plugin-scheduler] Error scheduling post')
