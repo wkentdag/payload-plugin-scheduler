@@ -197,4 +197,52 @@ describe('Plugin tests', () => {
     const updatedSchedules = await findSchedule(draft.id)
     expect(updatedSchedules.totalDocs).toBe(0)
   }, 9000)
+
+  it('handles peer hook errors', async () => {
+    const now = new Date()
+    const pubDate = addMinutes(now, INTERVAL)
+    const [draft, badDraft, badDraft2] = await Promise.all([
+      payload.create({
+        collection: 'pageswithextrahooks',
+        data: {
+          title: 'hello world',
+          publish_date: pubDate.toISOString(),
+        }
+      }),
+      payload.create({
+        collection: 'pageswithextrahooks',
+        data: {
+          title: 'throw',
+          publish_date: pubDate.toISOString(),
+        }
+      }),
+      payload.create({
+        collection: 'pageswithextrahooks',
+        data: {
+          title: 'commit-and-throw',
+          publish_date: pubDate.toISOString(),
+        }
+      }),
+    ])
+
+    await waitFor(1000 * 60 * INTERVAL)
+
+    const [updatedDraft, updatedBadDraft, updatedBadDraft2] = await Promise.all([
+      payload.findByID({
+        collection: 'pageswithextrahooks',
+        id: draft.id,
+      }),
+      payload.findByID({
+        collection: 'pageswithextrahooks',
+        id: badDraft.id,
+      }),
+      payload.findByID({
+        collection: 'pageswithextrahooks',
+        id: badDraft2.id,
+      }),
+    ])
+    expect(updatedDraft._status).toBe('published')
+    expect(updatedBadDraft._status).toBe('draft')
+    expect(updatedBadDraft2._status).toBe('published')
+  }, 1000 * 60 * INTERVAL + 5000)
 })

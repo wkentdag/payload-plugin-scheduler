@@ -1,13 +1,15 @@
-import { type Config } from "payload/config";
+import type { Plugin, Config } from "payload/config";
 import { webpackBundler } from '@payloadcms/bundler-webpack'
 import { slateEditor } from '@payloadcms/richtext-slate'
 
 import path from 'path'
 import Users from './collections/Users'
 import Pages from './collections/Pages'
+import Posts from './collections/Posts'
+import PagesWithExtraHooks from "./collections/PagesWithExtraHooks";
+
 // @ts-expect-error
 import { ScheduledPostPlugin } from '../../src'
-import Posts from './collections/Posts'
 
 export const INTERVAL = 1
 
@@ -32,7 +34,7 @@ export const baseConfig: Omit<Config, 'db'> = {
     },
   },
   editor: slateEditor({}),
-  collections: [Pages, Posts, Users],
+  collections: [Pages, PagesWithExtraHooks, Posts, Users],
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
   },
@@ -40,14 +42,14 @@ export const baseConfig: Omit<Config, 'db'> = {
     schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
   },
   plugins: [
-    ScheduledPostPlugin({
-      collections: ['pages', 'posts'],
+    (ScheduledPostPlugin({
+      collections: ['pages', 'posts', 'pageswithextrahooks'],
       interval: INTERVAL,
       scheduledPosts: {
         admin: {
           hidden: false,
         },
       },
-    }),
+    }) as unknown as Plugin),
   ],
 }
