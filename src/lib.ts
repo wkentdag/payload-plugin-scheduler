@@ -46,6 +46,7 @@ export function publishScheduledPost(
   payload: Payload,
 ): JobCallback {
   return async () => {
+    payload.logger.info(`Publishing ${post.relationTo} ${post.value}`)
     debug(`Publishing ${post.relationTo} ${post.value}`)
 
     try {
@@ -58,10 +59,10 @@ export function publishScheduledPost(
       })
       payload.logger.info(`[payload-plugin-scheduler] Published ${post.relationTo} ${post.value}`)
     } catch (error: unknown) {
-      payload.logger.error(
+      debug(`Error publishing ${post.relationTo} ${post.value} ${error?.toString()}`)
+      payload.logger.error(error, 
         `[payload-plugin-scheduler] Failed to publish ${post.relationTo} ${post.value}`
       )
-      payload.logger.error(error)
     }
   }
 }

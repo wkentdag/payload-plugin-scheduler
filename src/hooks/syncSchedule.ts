@@ -37,10 +37,11 @@ export default function syncSchedule(
           req,
         })
 
-        debug(`$deleted ${deleted?.docs?.length} previous schedules`)
+        debug(`deleted ${deleted?.docs?.length} stale schedules`)
 
         if (isPublishing) {
           // if the post is being published, we're done
+          debug(`publishing ${doc.id}`)
           return doc
         }
       }
@@ -69,7 +70,7 @@ export default function syncSchedule(
           req,
         })
                 
-        debug(`[payload-plugin-scheduler] scheduled ${collection.slug}:${dbValue} ${res.id}`)
+        debug(`scheduled ${collection.slug}:${dbValue} ${res.id}`)
       }
     } catch (error: unknown) {
       payload.logger.error('[payload-plugin-scheduler] Error scheduling post')
