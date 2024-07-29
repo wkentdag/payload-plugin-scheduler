@@ -225,7 +225,7 @@ describe('Plugin tests', () => {
       }),
     ])
 
-    await waitFor(1000 * 60 * INTERVAL)
+    await waitFor(1000 * 60 * INTERVAL + 2000)
 
     const [updatedDraft, updatedBadDraft, updatedBadDraft2] = await Promise.all([
       payload.findByID({
