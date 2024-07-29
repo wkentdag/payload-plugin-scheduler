@@ -1,5 +1,6 @@
 module.exports = {
   rules: {
+    'no-underscore-dangle': 'off',
     'prefer-named-exports': 'off',
 
     'prefer-destructuring': 'off',
