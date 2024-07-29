@@ -1,6 +1,6 @@
 {
   "name": "payload-plugin-scheduler",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage:": "https://github.comw/wkentdag/payload-plugin-scheduler",
   "repository": "git@github.com:wkentdag/payload-plugin-scheduler.git",
   "description": "Scheduled posts plugin for PayloadCMS",
