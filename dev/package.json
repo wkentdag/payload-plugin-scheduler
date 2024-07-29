@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.20.2"
+  },
   "scripts": {
     "dev": "cross-env PAYLOAD_CONFIG_PATH=src/payload.postgres.config.ts nodemon",
     "dev:mongo": "cross-env PAYLOAD_CONFIG_PATH=src/payload.mongo.config.ts nodemon",
