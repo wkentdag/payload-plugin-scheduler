@@ -27,7 +27,7 @@ describe('Plugin tests', () => {
       },
     })
 
-  it('schedules posts', async () => {
+  it('schedules collection docs', async () => {
     const pubDate = addMinutes(new Date(), 2).toISOString()
     const doc = await payload.create({
       collection: 'posts',
@@ -45,6 +45,37 @@ describe('Plugin tests', () => {
       totalDocs,
       docs: [schedule],
     } = await findSchedule(doc.id)
+
+    expect(totalDocs).toBe(1)
+    expect(schedule.date).toBe(doc.publish_date)
+    expect(schedule.status).toBe('queued')
+  })
+
+  it('schedules global docs', async () => {
+    const pubDate = addMinutes(new Date(), 2).toISOString()
+    const doc = await payload.updateGlobal({
+      slug: 'home',
+      data: {
+        title: 'hello world',
+        publish_date: pubDate,
+        _status: 'draft',
+      },
+    })
+
+    expect(doc.publish_date).toBe(pubDate)
+    expect(doc._status).toBe('draft')
+
+    const {
+      totalDocs,
+      docs: [schedule],
+    } = await payload.find({
+      collection: 'scheduled_posts',
+      where: {
+        global: {
+          equals: 'home'
+        }
+      }
+    })
 
     expect(totalDocs).toBe(1)
     expect(schedule.date).toBe(doc.publish_date)

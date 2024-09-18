@@ -26,7 +26,7 @@ export const onInit = (config: ScheduledPostConfig, payload: Payload): Job => {
     //  scheduled to fire at its publish_date
     await Promise.all(
       queued.map(async schedule => {
-        const { date, post } = schedule
+        const { date, post, global } = schedule
         const id = schedule.id.toString()
         // overwrite any existing job for this same document
         if (Object.keys(scheduledJobs).includes(id)) {
@@ -37,7 +37,7 @@ export const onInit = (config: ScheduledPostConfig, payload: Payload): Job => {
           }
         }
 
-        const job = new Job(id, publishScheduledPost({ post }, payload))
+        const job = new Job(id, publishScheduledPost({ post, global }, payload))
 
         const scheduled = job.schedule(date)
 

@@ -1,6 +1,6 @@
 import type { Config, Plugin } from 'payload/config'
 
-import type { CollectionConfig } from 'payload/types'
+import type { CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, GlobalAfterChangeHook, GlobalBeforeChangeHook, GlobalConfig } from 'payload/types'
 import type { ScheduledPostConfig } from './types'
 import { onInit } from './init'
 import syncSchedule from './hooks/syncSchedule'
@@ -18,7 +18,11 @@ export const ScheduledPostPlugin =
     }
 
     const config = { ...incomingConfig }
-    const { collections } = incomingConfig
+    const { collections, globals } = incomingConfig
+
+    if (!collections && !globals) {
+      throw new Error(`[payload-plugin-scheduler] At least one collection or global is required`)
+    }
 
     if (collections) {
       const enabledCollections = scheduleConfig.collections || []
@@ -34,14 +38,14 @@ export const ScheduledPostPlugin =
               fields: [...collection.fields, PublishDateField(scheduleConfig)],
               hooks: {
                 ...collection.hooks,
-                afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig)],
+                afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig) as CollectionAfterChangeHook],
                 beforeDelete: [
                   ...(existingHooks?.beforeDelete || []),
                   deleteSchedule(scheduleConfig),
                 ],
                 beforeChange: [
                   ...(existingHooks?.beforeChange || []),
-                  boundPublishDate(scheduleConfig),
+                  boundPublishDate(scheduleConfig) as CollectionBeforeChangeHook,
                 ],
               },
             }
@@ -53,6 +57,36 @@ export const ScheduledPostPlugin =
         .filter(Boolean)
 
       config.collections = [...collectionsWithScheduleHooks, ScheduledPosts(scheduleConfig)]
+    }
+
+    if (globals) {
+      const enabledGlobals = scheduleConfig.globals || []
+
+      const globalsWithScheduleHooks = globals.map(global => {
+        const { hooks: existingHooks } = global
+        const isEnabled = enabledGlobals.indexOf(global.slug) > -1
+
+        if (isEnabled) {
+          const decoratedConfig: GlobalConfig = {
+            ...global,
+            fields: [...global.fields, PublishDateField(scheduleConfig)],
+            hooks: {
+              ...existingHooks,
+              afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig) as GlobalAfterChangeHook],
+              beforeChange: [
+                ...(existingHooks?.beforeChange || []),
+                boundPublishDate(scheduleConfig) as GlobalBeforeChangeHook,
+              ],
+            }
+          }
+
+          return decoratedConfig
+        }
+
+        return global
+      }).filter(Boolean)
+
+      config.globals = globalsWithScheduleHooks
     }
 
     config.onInit = async payload => {
