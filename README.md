@@ -19,12 +19,15 @@ import { buildConfig } from 'payload/config'
 import { ScheduledPostPlugin } from 'payload-plugin-scheduler'
 import Pages from './collections/Pages'
 import Posts from './collections/Posts'
+import Home from './globals/Home'
 
 export default buildConfig({
   collections: [Pages, Posts],
+  globals: [Home],
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts'],
+      globals: ['home'],
       interval: 10,
     })
   ]
@@ -35,9 +38,15 @@ export default buildConfig({
 
 ## Options
 
-### `collections: string[]`
+At least one collection / global is required.
+
+### `collections?: string[]`
 
 An array of collection slugs. All collections must have drafts enabled.
+
+### `globals?: string[]`
+
+An array of global slugs. All globals must have drafts enabled.
 
 ### `interval?: number`
 
@@ -68,8 +77,8 @@ Collection added by the plugin to store pending schedule updates. Can be customi
 A configurable timer checks for any posts to be scheduled in the upcoming interval window. For each hit, it creates a separate job that's fired at that document's `publish_date` (via [node-schedule](https://github.com/node-schedule/node-schedule)). The idea here is that you can configure your interval window to avoid super long running tasks that are more prone to flaking.
 
 
-## Notes
+## Caveats
 
-Since the plugin uses cron under the hood, it depends on a long-running server and is incompatible with short-lived/serverless environments like ECS, or Vercel if you're using Payload 3.0 beta.
+* This plugin doesn't support Payload 3.0 beta. I intend to update it once 3.0 is stable, but it'll require substantial re-architecting to work in a serverless environment.
 
-I developed this plugin for a project that hasn't gone live yet. It has good test coverage but not in the wild yet -- there's your disclaimer.
+* There's no logic in place to dedupe schedules across multiple instances of a single app (see https://github.com/wkentdag/payload-plugin-scheduler/issues/9)
