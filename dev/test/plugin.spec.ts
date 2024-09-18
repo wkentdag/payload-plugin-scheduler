@@ -62,8 +62,8 @@ describe('Plugin tests', () => {
       },
     })
 
-    expect(doc.id).toBeTruthy()
     expect(doc.publish_date).toBe(pubDate)
+    expect(doc._status).toBe('draft')
 
     const {
       totalDocs,
