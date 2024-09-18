@@ -22,12 +22,17 @@ const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =
           name: 'post',
           type: 'relationship',
           unique: true,
-          required: true,
-          relationTo: [...scheduleConfig.collections],
+          relationTo: [...(scheduleConfig.collections || [])],
           hasMany: false,
           admin: {
             readOnly: true,
           },
+        },
+        {
+          name: 'global',
+          type: 'select',
+          options: [...(scheduleConfig.globals || [])],
+          unique: true,
         },
         {
           name: 'date',

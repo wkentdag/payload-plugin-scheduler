@@ -1,7 +1,8 @@
 import type { CollectionConfig, ValueWithRelation } from 'payload/types'
 
 export interface ScheduledPostConfig {
-  collections: string[]
+  collections?: string[]
+  globals?: string[]
   interval?: number
   scheduledPosts?: Partial<Omit<CollectionConfig, 'slug'>>
 }
