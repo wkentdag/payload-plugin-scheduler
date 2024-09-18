@@ -9,7 +9,8 @@ export interface ScheduledPostConfig {
 
 export interface ScheduledPost {
   id: string | number
-  post: ValueWithRelation
+  post?: ValueWithRelation
+  global?: string
   date: string
   status: 'queued' | 'complete'
 }

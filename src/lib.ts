@@ -42,26 +42,34 @@ export async function getUpcomingPosts(
 }
 
 export function publishScheduledPost(
-  { post }: Pick<ScheduledPost, 'post'>,
+  { post, global }: Pick<ScheduledPost, 'post' | 'global'>,
   payload: Payload,
 ): JobCallback {
   return async () => {
-    payload.logger.info(`Publishing ${post.relationTo} ${post.value}`)
-    debug(`Publishing ${post.relationTo} ${post.value}`)
+    const tag = global || `${post!.relationTo} ${post!.value}`
+    payload.logger.info(`Publishing ${tag}`)
+    debug(`Publishing ${tag}`)
+
+    const updateOp = (): ReturnType<typeof payload.updateGlobal> => global ? payload.updateGlobal({
+      slug: global,
+      data: {
+        _status: 'published'
+      }
+    }) : payload.update({
+      id: post!.value,
+      collection: post!.relationTo,
+      data: {
+        _status: 'published',
+      },
+    })
 
     try {
-      await payload.update({
-        id: post.value,
-        collection: post.relationTo,
-        data: {
-          _status: 'published',
-        },
-      })
-      payload.logger.info(`[payload-plugin-scheduler] Published ${post.relationTo} ${post.value}`)
+      await updateOp()
+      payload.logger.info(`[payload-plugin-scheduler] Published ${tag}`)
     } catch (error: unknown) {
-      debug(`Error publishing ${post.relationTo} ${post.value} ${error?.toString()}`)
+      debug(`Error publishing ${tag} ${error?.toString()}`)
       payload.logger.error(error, 
-        `[payload-plugin-scheduler] Failed to publish ${post.relationTo} ${post.value}`
+        `[payload-plugin-scheduler] Failed to publish ${tag}`
       )
     }
   }
