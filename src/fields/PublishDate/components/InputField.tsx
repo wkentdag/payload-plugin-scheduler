@@ -37,10 +37,19 @@ const InputField: (datePickerProps: ConditionalDateProps) => React.FC<Props> =
     // verify that scheduled posts actually have a job
     const doc = useDocumentInfo()
     const [queued, setQueued] = useState<boolean>()
+
     useEffect(() => {
       async function verifySchedule() {
+        const isGlobal = doc?.global !== undefined
+
         try {
-          const qs = {
+          const qs = isGlobal ? {
+            where: {
+              global: {
+                equals: doc.global?.slug
+              }
+            }
+          } : {
             where: {
               and: [
                 {
