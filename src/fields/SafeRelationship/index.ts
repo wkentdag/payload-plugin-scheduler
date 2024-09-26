@@ -3,8 +3,15 @@ import type { SanitizedConfig } from 'payload/config'
 import type {
   RelationshipField,
   RelationshipValue,
+  TypeWithID,
   Validate,
 } from 'payload/types'
+
+type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
+  _status?: 'published' | 'draft'
+  publish_date?: string
+
+}
 
 const SafeRelationshipField: (
   props: Omit<RelationshipField, 'type'>,
@@ -25,7 +32,7 @@ const SafeRelationshipField: (
       config,
       data,
       payload,
-    }: { config: SanitizedConfig; data: object; payload: Payload } = options
+    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload: Payload } = options
 
     // can't run on the client
     if (!payload) {
@@ -43,11 +50,11 @@ const SafeRelationshipField: (
       : [props.relationTo]
 
     // build a list of collections we need to check draft status for
-    const relatedDraftCollections = []
+    const relatedDraftCollections: string[] = []
 
     relationsTo.forEach((name) => {
       const collection = config.collections.find(({ slug }) => slug === name)
-      if (!!collection?.versions?.drafts) {
+      if (collection?.versions?.drafts) {
         relatedDraftCollections.push(collection.slug)
       }
     })
@@ -55,53 +62,59 @@ const SafeRelationshipField: (
     // cast value to an array
     const values = Array.isArray(value) ? value : [value]
 
-    // compile an array of related documents
-    const relatedDocs = await Promise.all(
-      values.map(async (v) => {
-        // naively assume that we're dealing with a simple (not polymorphic) relationship
-        // https://payloadcms.com/docs/fields/relationship#how-the-data-is-saved
-        let collection = props.relationTo as string
-        let id = v as string | number
+    // compile an array of related draft documents
+    const relatedDocs = await values.reduce<Promise<MaybeScheduledDoc[]>>(async (accPromise, v) => {
+      const acc = await accPromise;
+    
+      // naively assume that we're dealing with a simple (not polymorphic) relationship
+      // https://payloadcms.com/docs/fields/relationship#how-the-data-is-saved
+      let collection = props.relationTo as string;
+      let id = v as string | number;
+    
+      // handle polymorphic relationships
+      if (typeof v === 'object') {
+        collection = v.relationTo;
+        id = v.value;
+      }
+    
+      // ignore related docs w/o drafts
+      if (!relatedDraftCollections.includes(collection)) {
+        return acc; // Skip adding this entry to accumulator
+      }
+    
+      const doc = await payload.findByID({
+        id,
+        collection,
+      });
+    
+      // Only add the document if it's in draft status
+      if (doc && doc._status === 'draft') {
+        acc.push(doc);
+      }
+    
+      return acc;
+    }, Promise.resolve([]))
 
-        // handle polymorphic relationships
-        if (typeof v === 'object') {
-          collection = v.relationTo
-          id = v.value
-        }
+    const invalidRelatedDocs: Array<string|number> = []
 
-        // ignore related docs w/o drafts
-        if (!relatedDraftCollections.includes(collection)) {
-          return null
-        }
+    // store a reference to the publish date for the current document
+    let publishDate: Date
+    if (data?._status === 'published' || !data?._status) {
+      // for published docs, or docs w/o drafts, we assume they are currently being published
+      publishDate = new Date()
+    } else if (data?._status === 'draft' && data?.publish_date) {
+      // for scheduled documents, use the set publish_date
+      publishDate = new Date(data.publish_date)
+    }
 
-        const doc = await payload.findByID({
-          id,
-          collection,
-        })
-
-        return doc
-      }),
-    )
-
-    const invalidRelatedDocs = []
-
-    const publishDate =
-      data?._status === 'published' ? new Date() : new Date(data?.publish_date)
-
-    // loop over the related documents...
+    // loop over the related documents and find any stragglers
     relatedDocs
-      // filter out invalid elements @TODO perform this step above in a `reduce`
-      .filter((doc) => {
-        return !!doc && doc?._status === 'draft'
-      })
-      // find any invalid publish_dates
-      .forEach((data) => {
-        const docPubDate = data.publish_date
-          ? new Date(data.publish_date)
+      .forEach((rd) => {
+        const docPubDate = rd.publish_date
+          ? new Date(rd.publish_date)
           : null
-        // console.log(docPubDate, publishDate, docPubDate >= publishDate)
         if (!docPubDate || docPubDate >= publishDate) {
-          invalidRelatedDocs.push(data.id)
+          invalidRelatedDocs.push(rd.id)
         }
       })
 
@@ -112,13 +125,12 @@ const SafeRelationshipField: (
     return true
   }
 
-  const field: RelationshipField = {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  return {
     type: 'relationship',
     ...props,
-    validate,
+    validate
   } as RelationshipField
-
-  return field
 }
 
 export default SafeRelationshipField
