@@ -13,7 +13,7 @@ type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
 
 }
 
-const SafeRelationshipField: (
+export const SafeRelationship: (
   props: Omit<RelationshipField, 'type'>,
 ) => RelationshipField = (props) => {
   const validate: Validate<RelationshipValue> = async (
@@ -32,14 +32,19 @@ const SafeRelationshipField: (
       config,
       data,
       payload,
-    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload: Payload } = options
+    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload?: Payload } = options
 
     // can't run on the client
     if (!payload) {
       return true
     }
+    
+    // abort if the field is empty
+    if (!value || Array.isArray(value) && value.length === 0) {
+      return true
+    }
 
-    // abort if the current document is a draft
+    // abort if the current document is an unscheduled draft
     if (data?._status === 'draft' && !data?.publish_date) {
       return true
     }
@@ -48,6 +53,9 @@ const SafeRelationshipField: (
     const relationsTo = Array.isArray(props.relationTo)
       ? props.relationTo
       : [props.relationTo]
+
+    // cast value to an array
+    const values = Array.isArray(value) ? value : [value]
 
     // build a list of collections we need to check draft status for
     const relatedDraftCollections: string[] = []
@@ -59,27 +67,24 @@ const SafeRelationshipField: (
       }
     })
 
-    // cast value to an array
-    const values = Array.isArray(value) ? value : [value]
-
-    // compile an array of related draft documents
+    // compile an array of related draft documents to check
     const relatedDocs = await values.reduce<Promise<MaybeScheduledDoc[]>>(async (accPromise, v) => {
       const acc = await accPromise;
     
       // naively assume that we're dealing with a simple (not polymorphic) relationship
       // https://payloadcms.com/docs/fields/relationship#how-the-data-is-saved
       let collection = props.relationTo as string;
-      let id = v as string | number;
+      let id = v as string | number
     
       // handle polymorphic relationships
       if (typeof v === 'object') {
-        collection = v.relationTo;
-        id = v.value;
+        collection = v.relationTo
+        id = v.value
       }
     
       // ignore related docs w/o drafts
       if (!relatedDraftCollections.includes(collection)) {
-        return acc; // Skip adding this entry to accumulator
+        return acc
       }
     
       const doc = await payload.findByID({
@@ -89,7 +94,7 @@ const SafeRelationshipField: (
     
       // Only add the document if it's in draft status
       if (doc && doc._status === 'draft') {
-        acc.push(doc);
+        acc.push(doc)
       }
     
       return acc;
@@ -132,5 +137,3 @@ const SafeRelationshipField: (
     validate
   } as RelationshipField
 }
-
-export default SafeRelationshipField
