@@ -1,10 +1,17 @@
 import { type CollectionConfig } from 'payload/types'
-import Pages from './Pages'
 
 const Posts: CollectionConfig = {
-  ...Pages,
-  fields: [Pages.fields[0]],
   slug: 'posts',
+  admin: {
+    useAsTitle: 'title',
+  },
+  versions: { drafts: true },
+  fields: [
+    {
+      name: 'title',
+      type: 'text',
+    },
+  ],
 }
 
 export default Posts
