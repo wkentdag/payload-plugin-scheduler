@@ -1,4 +1,5 @@
 import type { CollectionConfig, ValueWithRelation } from 'payload/types'
+import type SafeRelationship from './fields/SafeRelationship'
 
 export interface ScheduledPostConfig {
   collections?: string[]
@@ -14,3 +15,5 @@ export interface ScheduledPost {
   date: string
   status: 'queued' | 'complete'
 }
+
+export type SafeRelationshipField = typeof SafeRelationship

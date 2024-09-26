@@ -13,6 +13,9 @@ type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
 
 }
 
+/**
+ * Wrapper around the default `RelationshipField` that ensures "related" documents are published before the primary document
+ */
 export const SafeRelationship: (
   props: Omit<RelationshipField, 'type'>,
 ) => RelationshipField = (props) => {
