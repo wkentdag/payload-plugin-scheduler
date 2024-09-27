@@ -59,14 +59,30 @@ This value will also be passed to the `DatePicker` component. Defaults to 5 mins
 Custom configuration for the scheduled posts collection that gets merged with the defaults.
 
 
+## Utils
+
+### `SafeRelationship`
+
+Drop-in replacement for the default [`relationship` field](https://payloadcms.com/docs/fields/relationship) to prevent users from publishing documents that have references to other docs that are still in draft / scheduled mode.
+
+```ts
+import type { Field } from 'payload'
+import { SafeRelationship } from 'payload-plugin-scheduler'
+
+const example: Field = SafeRelationship({
+  name: 'featured_content',
+  relationTo: ['posts', 'pages'],
+  hasMany: true,
+})
+```
+
 ## Approach
 
-In a nutshell, the plugin creates a `publish_date` field that it uses to determine whether a pending draft update needs to be scheduled.
+In a nutshell, the plugin creates a `publish_date` field that it uses to determine whether a pending draft update needs to be scheduled. If a draft document is saved with a `publish_date` that's in the future, it will be scheduled and automatically published on that date.
 
 ### `publish_date`
 
-Custom Datetime field added to documents in enabled collections.
-Includes custom `Field` and `Cell` components that include schedule status in the client-side UI.
+Datetime field added to enabled collections. Custom `Field` and `Cell` components display the schedule status in the client-side UI.
 
 ### `scheduled_posts`
 
@@ -82,3 +98,5 @@ A configurable timer checks for any posts to be scheduled in the upcoming interv
 * This plugin doesn't support Payload 3.0 beta. I intend to update it once 3.0 is stable, but it'll require substantial re-architecting to work in a serverless environment.
 
 * There's no logic in place to dedupe schedules across multiple instances of a single app (see https://github.com/wkentdag/payload-plugin-scheduler/issues/9)
+
+* There's no logic in place to automatically publish any pending scheduled posts that weren't published due to server downtime. 
