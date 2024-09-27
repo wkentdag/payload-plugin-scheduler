@@ -1,11 +1,10 @@
 import { type CollectionConfig } from 'payload/types'
 
-const Posts: CollectionConfig = {
-  slug: 'posts',
+const Basics: CollectionConfig = {
+  slug: 'basics',
   admin: {
     useAsTitle: 'title',
   },
-  versions: { drafts: true },
   fields: [
     {
       name: 'title',
@@ -14,4 +13,4 @@ const Posts: CollectionConfig = {
   ],
 }
 
-export default Posts
+export default Basics

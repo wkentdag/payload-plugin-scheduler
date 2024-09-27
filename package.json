@@ -26,11 +26,12 @@
   ],
   "scripts": {
     "build": "tsc",
+    "dev": "cd dev && yarn dev",
     "format": "prettier --write",
     "test": "cd dev && yarn test",
     "test:all": "run-p test:mongo test:postgres",
     "test:mongo": "PORT=3001 DATABASE_URI=mongodb://127.0.0.1/plugin-development PAYLOAD_CONFIG_PATH=src/payload.mongo.config.ts yarn test",
-    "test:postgres": "DATABASE_URI=postgres://127.0.0.1:5432/payload-plugin-scheduler PAYLOAD_CONFIG_PATH=src/payload.postgres.config.ts yarn test",
+    "test:postgres": "PORT=3002 DATABASE_URI=postgres://127.0.0.1:5432/payload-plugin-scheduler PAYLOAD_CONFIG_PATH=src/payload.postgres.config.ts yarn test",
     "lint": "eslint src",
     "lint:fix": "eslint --fix --ext .ts,.tsx src",
     "clean": "rimraf dist && rimraf dev/yarn.lock",

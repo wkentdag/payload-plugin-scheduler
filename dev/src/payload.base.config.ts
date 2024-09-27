@@ -11,6 +11,7 @@ import PagesWithExtraHooks from "./collections/PagesWithExtraHooks";
 // @ts-expect-error
 import { ScheduledPostPlugin } from '../../src'
 import Home from "./globals/Home";
+import Basics from "./collections/Basics";
 
 export const INTERVAL = 1
 
@@ -35,7 +36,7 @@ export const baseConfig: Omit<Config, 'db'> = {
     },
   },
   editor: slateEditor({}),
-  collections: [Pages, PagesWithExtraHooks, Posts, Users],
+  collections: [Basics, Pages, PagesWithExtraHooks, Posts, Users],
   globals: [Home],
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
