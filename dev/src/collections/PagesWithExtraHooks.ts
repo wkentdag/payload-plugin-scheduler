@@ -1,5 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionConfig } from 'payload/types'
 import type { Pageswithextrahook } from 'payload/generated-types'
+import Pages from './Pages'
 // @ts-expect-error
 import { debug } from '../../../src/util'
 
@@ -20,22 +21,13 @@ export const ExtraHook: CollectionAfterChangeHook<Pageswithextrahook> = async ({
 }
 
 const PagesWithExtraHooks: CollectionConfig = {
+  ...Pages,
   slug: 'pageswithextrahooks',
-  admin: {
-    useAsTitle: 'title',
-  },
-  versions: { drafts: true },
   hooks: {
     afterChange: [
       ExtraHook
     ]
-  },
-  fields: [
-    {
-      name: 'title',
-      type: 'text',
-    },
-  ]
+  }
 }
 
 export default PagesWithExtraHooks
