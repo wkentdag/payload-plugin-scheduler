@@ -63,17 +63,18 @@ export const SafeRelationship: (
     const values = Array.isArray(value) ? value : [value]
 
     // build a list of collections we need to check draft status for
-    const relatedDraftCollections: string[] = []
+    // format: { [collectionSlug]: <titleFieldKey> } so we can generate a pretty error message later
+    const relatedDraftCollections: Record<string, string> = {}
 
     relationsTo.forEach((name) => {
       const collection = config.collections.find(({ slug }) => slug === name)
       if (collection?.versions?.drafts) {
-        relatedDraftCollections.push(collection.slug)
+        relatedDraftCollections[collection.slug] = collection.admin.useAsTitle
       }
     })
 
     // compile an array of related draft documents to check
-    const relatedDocs = await values.reduce<Promise<MaybeScheduledDoc[]>>(async (accPromise, v) => {
+    const relatedDocs = await values.reduce<Promise<Array<MaybeScheduledDoc & { collection: string }>>>(async (accPromise, v) => {
       const acc = await accPromise;
     
       // naively assume that we're dealing with a simple (not polymorphic) relationship
@@ -88,7 +89,7 @@ export const SafeRelationship: (
       }
     
       // ignore related docs w/o drafts
-      if (!relatedDraftCollections.includes(collection)) {
+      if (!relatedDraftCollections[collection]) {
         return acc
       }
 
@@ -101,16 +102,16 @@ export const SafeRelationship: (
       
         // Only add the document if it's in draft status
         if (doc && doc._status === 'draft') {
-          acc.push(doc)
+          acc.push({ ...doc, collection })
         }
       } catch (error: unknown) {
-        payload.logger.error(error, `[SafeRelationship] error finding ${collection}:${id}`)
+        payload.logger.error(error, `[SafeRelationship] ${collection}:${id}`)
       }
     
       return acc;
     }, Promise.resolve([]))
 
-    const invalidRelatedDocs: Array<string|number> = []
+    const invalidRelatedDocs: Array<{ collection: string; title: string }> = []
 
     // store a reference to the publish date for the current document
     let publishDate: Date
@@ -127,14 +128,17 @@ export const SafeRelationship: (
       .forEach((rd) => {
         const docPubDate = rd.publish_date
           ? new Date(rd.publish_date)
-          : null
+          : null // this check is necessary otherwise new Date(null) => 1/1/70
         if (!docPubDate || docPubDate >= publishDate) {
-          invalidRelatedDocs.push(rd.id)
+          invalidRelatedDocs.push({
+            collection: rd.collection,
+            title: rd[relatedDraftCollections[rd.collection]] as string
+          })
         }
       })
 
     if (invalidRelatedDocs.length > 0) {
-      return `The following documents won't be published before this one: ${invalidRelatedDocs.join(', ')}. Please remove the publish_date from the current document, or change the publish_date on the related documents`
+      return `The following docs must be published before this one: ${invalidRelatedDocs.map(({ collection, title }) => `${title} (${collection})`).join(', ')}`
     }
 
     return true
