@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import type { SanitizedConfig } from 'payload/config'
 import type {
+  PayloadRequest,
   RelationshipField,
   RelationshipValue,
   TypeWithID,
@@ -35,7 +36,8 @@ export const SafeRelationship: (
       config,
       data,
       payload,
-    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload?: Payload } = options
+      req,
+    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload?: Payload, req?: PayloadRequest } = options
 
     // can't run on the client
     if (!payload) {
@@ -89,15 +91,20 @@ export const SafeRelationship: (
       if (!relatedDraftCollections.includes(collection)) {
         return acc
       }
-    
-      const doc = await payload.findByID({
-        id,
-        collection,
-      });
-    
-      // Only add the document if it's in draft status
-      if (doc && doc._status === 'draft') {
-        acc.push(doc)
+
+      try {
+        const doc = await payload.findByID({
+          id,
+          collection,
+          req,
+        });
+      
+        // Only add the document if it's in draft status
+        if (doc && doc._status === 'draft') {
+          acc.push(doc)
+        }
+      } catch (error: unknown) {
+        payload.logger.error(error, `[SafeRelationship] error finding ${collection}:${id}`)
       }
     
       return acc;
