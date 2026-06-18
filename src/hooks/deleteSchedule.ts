@@ -1,5 +1,6 @@
 import type { CollectionBeforeDeleteHook } from 'payload'
 
+import { deleteScheduledPublishJobs } from '../lib.js'
 import type { ScheduledPostConfig } from '../types.js'
 import { debug } from '../util.js'
 
@@ -10,23 +11,13 @@ export default function deleteSchedule(
   return async ({ id, collection, req }) => {
     debug(`deleteSchedule ${collection.slug} ${id}`)
     try {
-      await req.payload.delete({
-        collection: 'scheduled_posts',
-        where: {
-          and: [
-            {
-              'post.value': {
-                equals: id,
-              },
-            },
-            {
-              'post.relationTo': {
-                equals: collection.slug,
-              },
-            },
-          ],
-        },
+      await deleteScheduledPublishJobs({
         req,
+        target: {
+          id,
+          slug: collection.slug,
+          type: 'collection',
+        },
       })
     } catch (error: unknown) {
       req.payload.logger.error({

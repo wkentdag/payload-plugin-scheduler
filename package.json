@@ -87,7 +87,6 @@
     "@swc/cli": "0.6.0",
     "@types/debug": "4.1.12",
     "@types/node": "22.19.9",
-    "@types/node-schedule": "2.1.7",
     "@types/qs": "6.9.15",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
@@ -112,7 +111,6 @@
   "dependencies": {
     "date-fns": "3.6.0",
     "debug": "4.3.4",
-    "node-schedule": "2.1.1",
     "qs": "6.12.1",
     "ts-deepmerge": "7.0.0"
   }

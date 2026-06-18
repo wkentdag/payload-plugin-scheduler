@@ -9,13 +9,37 @@ import type {
   Plugin,
 } from 'payload'
 
-import ScheduledPosts from './collections/ScheduledPosts.js'
 import PublishDateField from './fields/PublishDate/index.js'
 import boundPublishDate from './hooks/boundPublishDate.js'
 import deleteSchedule from './hooks/deleteSchedule.js'
 import syncSchedule from './hooks/syncSchedule.js'
-import { onInit } from './init.js'
 import type { ScheduledPostConfig } from './types.js'
+
+const withScheduledPublishVersions = <T extends CollectionConfig | GlobalConfig>(
+  entity: T,
+  timeIntervals: number,
+): T => {
+  const versions = typeof entity.versions === 'object' ? entity.versions : {}
+  const existingDrafts = versions.drafts
+  const drafts = typeof existingDrafts === 'object' ? existingDrafts : {}
+  const existingSchedulePublish = drafts.schedulePublish
+  const schedulePublish =
+    typeof existingSchedulePublish === 'object' ? existingSchedulePublish : {}
+
+  return {
+    ...entity,
+    versions: {
+      ...versions,
+      drafts: {
+        ...drafts,
+        schedulePublish: {
+          ...schedulePublish,
+          timeIntervals,
+        },
+      },
+    },
+  } as T
+}
 
 export const ScheduledPostPlugin =
   (incomingScheduleConfig: ScheduledPostConfig): Plugin =>
@@ -24,6 +48,7 @@ export const ScheduledPostPlugin =
     if (!scheduleConfig.interval) {
       scheduleConfig.interval = 5
     }
+    const timeIntervals = scheduleConfig.interval
 
     const config = { ...incomingConfig }
     const { collections, globals } = incomingConfig
@@ -42,7 +67,7 @@ export const ScheduledPostPlugin =
 
           if (isEnabled) {
             const decoratedConfig: CollectionConfig = {
-              ...collection,
+              ...withScheduledPublishVersions(collection, timeIntervals),
               fields: [...collection.fields, PublishDateField(scheduleConfig)],
               hooks: {
                 ...collection.hooks,
@@ -64,7 +89,7 @@ export const ScheduledPostPlugin =
         })
         .filter(Boolean)
 
-      config.collections = [...collectionsWithScheduleHooks, ScheduledPosts(scheduleConfig)]
+      config.collections = collectionsWithScheduleHooks
     }
 
     if (globals) {
@@ -76,7 +101,7 @@ export const ScheduledPostPlugin =
 
         if (isEnabled) {
           const decoratedConfig: GlobalConfig = {
-            ...global,
+            ...withScheduledPublishVersions(global, timeIntervals),
             fields: [...global.fields, PublishDateField(scheduleConfig)],
             hooks: {
               ...existingHooks,
@@ -97,10 +122,8 @@ export const ScheduledPostPlugin =
       config.globals = globalsWithScheduleHooks
     }
 
-    config.onInit = async payload => {
-      if (incomingConfig.onInit) {await incomingConfig.onInit(payload)}
-      // Add additional onInit code by using the onInitExtension function
-      onInit(scheduleConfig, payload)
+    config.jobs = {
+      ...(incomingConfig.jobs || {}),
     }
 
     return config
