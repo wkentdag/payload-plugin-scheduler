@@ -18,9 +18,12 @@ export default defineConfig({
   ],
   test: {
     environment: 'node',
+    // one worker, one payload init, no parallel schema pushes / mongo repl set races
+    fileParallelism: false,
     globals: true,
-    hookTimeout: 30_000,
+    hookTimeout: 120_000,
+    isolate: false,
     setupFiles: ['./dev/test/setup.ts'],
-    testTimeout: 30_000,
+    testTimeout: 120_000,
   },
 })

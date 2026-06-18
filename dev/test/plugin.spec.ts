@@ -7,7 +7,7 @@ const waitFor = (time: number): Promise<void> => new Promise(resolve => setTimeo
 describe('Plugin tests', () => {
   const payload = globalThis.payloadClient as Payload
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+   
   const findSchedule = (id: string | number) =>
     payload.find({
       collection: 'scheduled_posts',
@@ -128,7 +128,7 @@ describe('Plugin tests', () => {
         id: draft.id,
       })
 
-      // eslint-disable-next-line no-underscore-dangle
+       
       expect(publishedDraft._status).toBe('published')
       const { totalDocs: updatedTotalDocs } = await findSchedule(draft.id)
       expect(updatedTotalDocs).toBe(0)
@@ -194,7 +194,6 @@ describe('Plugin tests', () => {
         },
       },
       data: {
-        // @ts-expect-error
         publish_date: null,
       },
     })
@@ -218,7 +217,7 @@ describe('Plugin tests', () => {
     const { totalDocs } = await findSchedule(draft.id)
     expect(totalDocs).toBe(1)
 
-    payload.delete({
+    await payload.delete({
       collection: 'posts',
       id: draft.id,
     })

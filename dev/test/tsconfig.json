@@ -1,9 +1,9 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "types": ["node", "vitest/globals"],
     "noEmit": true
   },
-  "include": ["test/**/*.ts"],
+  "include": ["./**/*.ts", "./vitest.d.ts"],
   "exclude": []
 }

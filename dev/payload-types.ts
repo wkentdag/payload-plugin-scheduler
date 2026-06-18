@@ -92,7 +92,7 @@ export interface Config {
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: number;
+    defaultIDType: string;
   };
   fallbackLocale: null;
   globals: {
@@ -134,7 +134,7 @@ export interface UserAuthOperations {
  * via the `definition` "basics".
  */
 export interface Basic {
-  id: number;
+  id: string;
   title?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -144,20 +144,20 @@ export interface Basic {
  * via the `definition` "pages".
  */
 export interface Page {
-  id: number;
+  id: string;
   title?: string | null;
   content?: string | null;
-  featured_post?: (number | null) | Post;
-  related_pages?: (number | Page)[] | null;
+  featured_post?: (string | null) | Post;
+  related_pages?: (string | Page)[] | null;
   mixed_relationship?:
     | (
         | {
             relationTo: 'pages';
-            value: number | Page;
+            value: string | Page;
           }
         | {
             relationTo: 'basics';
-            value: number | Basic;
+            value: string | Basic;
           }
       )[]
     | null;
@@ -165,11 +165,11 @@ export interface Page {
     | (
         | {
             relationTo: 'pages';
-            value: number | Page;
+            value: string | Page;
           }
         | {
             relationTo: 'posts';
-            value: number | Post;
+            value: string | Post;
           }
       )[]
     | null;
@@ -183,7 +183,7 @@ export interface Page {
  * via the `definition` "posts".
  */
 export interface Post {
-  id: number;
+  id: string;
   title?: string | null;
   publish_date?: string | null;
   updatedAt: string;
@@ -195,20 +195,20 @@ export interface Post {
  * via the `definition` "pageswithextrahooks".
  */
 export interface Pageswithextrahook {
-  id: number;
+  id: string;
   title?: string | null;
   content?: string | null;
-  featured_post?: (number | null) | Post;
-  related_pages?: (number | Page)[] | null;
+  featured_post?: (string | null) | Post;
+  related_pages?: (string | Page)[] | null;
   mixed_relationship?:
     | (
         | {
             relationTo: 'pages';
-            value: number | Page;
+            value: string | Page;
           }
         | {
             relationTo: 'basics';
-            value: number | Basic;
+            value: string | Basic;
           }
       )[]
     | null;
@@ -216,11 +216,11 @@ export interface Pageswithextrahook {
     | (
         | {
             relationTo: 'pages';
-            value: number | Page;
+            value: string | Page;
           }
         | {
             relationTo: 'posts';
-            value: number | Post;
+            value: string | Post;
           }
       )[]
     | null;
@@ -234,7 +234,7 @@ export interface Pageswithextrahook {
  * via the `definition` "users".
  */
 export interface User {
-  id: number;
+  id: string;
   name?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -260,19 +260,19 @@ export interface User {
  * via the `definition` "scheduled_posts".
  */
 export interface ScheduledPost {
-  id: number;
+  id: string;
   post?:
     | ({
         relationTo: 'pages';
-        value: number | Page;
+        value: string | Page;
       } | null)
     | ({
         relationTo: 'posts';
-        value: number | Post;
+        value: string | Post;
       } | null)
     | ({
         relationTo: 'pageswithextrahooks';
-        value: number | Pageswithextrahook;
+        value: string | Pageswithextrahook;
       } | null);
   global?: 'home' | null;
   date?: string | null;
@@ -285,7 +285,7 @@ export interface ScheduledPost {
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: number;
+  id: string;
   key: string;
   data:
     | {
@@ -302,36 +302,36 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: number;
+  id: string;
   document?:
     | ({
         relationTo: 'basics';
-        value: number | Basic;
+        value: string | Basic;
       } | null)
     | ({
         relationTo: 'pages';
-        value: number | Page;
+        value: string | Page;
       } | null)
     | ({
         relationTo: 'pageswithextrahooks';
-        value: number | Pageswithextrahook;
+        value: string | Pageswithextrahook;
       } | null)
     | ({
         relationTo: 'posts';
-        value: number | Post;
+        value: string | Post;
       } | null)
     | ({
         relationTo: 'users';
-        value: number | User;
+        value: string | User;
       } | null)
     | ({
         relationTo: 'scheduled_posts';
-        value: number | ScheduledPost;
+        value: string | ScheduledPost;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -341,10 +341,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: number;
+  id: string;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   key?: string | null;
   value?:
@@ -364,7 +364,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: number;
+  id: string;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -502,7 +502,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  * via the `definition` "home".
  */
 export interface Home {
-  id: number;
+  id: string;
   title?: string | null;
   publish_date?: string | null;
   _status?: ('draft' | 'published') | null;

@@ -1,4 +1,3 @@
-import { afterAll } from 'vitest'
 import { getPayload, type Payload } from 'payload'
 
 declare global {
@@ -6,27 +5,23 @@ declare global {
   var payloadClient: Payload | undefined
 }
 
+const isMongo = process.env.PAYLOAD_CONFIG_PATH?.includes('mongo')
+
 const loadConfig = async () => {
-  if (process.env.PAYLOAD_CONFIG_PATH?.includes('mongo')) {
-    const { default: config } = await import('../src/payload.mongo.config')
-    return config
+  if (isMongo) {
+    // dev/.env often points DATABASE_URI at postgres; ignore it for mongo tests.
+    if (process.env.DATABASE_URI && !process.env.DATABASE_URI.startsWith('mongodb')) {
+      delete process.env.DATABASE_URI
+    }
+
+    const { default: config } = await import('../src/payload.mongo.config.js')
+    return await config
   }
 
-  const { default: config } = await import('../src/payload.postgres.config')
+  const { default: config } = await import('../src/payload.postgres.config.js')
   return config
 }
 
-const config = await loadConfig()
-globalThis.payloadClient = await getPayload({ config })
-
-afterAll(async () => {
-  const payload = globalThis.payloadClient
-  if (!payload) {return}
-
-  if (process.env.PAYLOAD_CONFIG_PATH?.includes('mongo')) {
-    await payload.db.destroy()
-    return
-  }
-
-  await payload.db.destroy()
-})
+if (!globalThis.payloadClient) {
+  globalThis.payloadClient = await getPayload({ config: await loadConfig() })
+}

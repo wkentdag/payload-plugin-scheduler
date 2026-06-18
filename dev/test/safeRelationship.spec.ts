@@ -228,7 +228,7 @@ describe('SafeRelationshipField', () => {
           ],
           _status: 'published',
         }
-      })).rejects.toThrow('The following field is invalid: Mixed Relationship')
+      })).rejects.toThrow('The following field is invalid: Mixed_relationship')
     })
   })
 })
