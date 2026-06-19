@@ -2,9 +2,9 @@
 
 Plugin that adds an imperative field-based scheduling flow on top of Payload's native functionality, with at-a-glance schedule status in the admin UI.
 
-Starting in v3, Payload has a built-in workflow for scheduling posts with via the job queue and "Schedule Publish" drawer. This plugin adds a configurable Date field to opted-in collections and globals that, when set to a future date, automatically queues a `schedulePublish` job in the background with `waitUntil` set to that date. This results in a more ergonomic workflow for editors where they can view the schedule status at a glance in the document editor, and sort/filter by publish time in the list view.
+Starting in v3, Payload has a built-in workflow for scheduling posts via the job queue and "Schedule Publish" drawer. This plugin adds a configurable Date field to opted-in collections and globals that, when set to a future date, automatically queues a `schedulePublish` job in the background with `waitUntil` set to that date. This results in a more ergonomic workflow for editors where they can view the schedule status at a glance in the document editor, and sort/filter by publish time in the list view.
 
-This plugin was originally written for payload v2, and included a background scheduler that's since been superseded by v3's native queue. For payload v2, use version [`<=0.1.3`](https://github.com/wkentdag/payload-plugin-scheduler/releases/tag/0.1.3).
+This plugin was originally written for Payload v2, and included a background scheduler that's since been superseded by v3's native queue. For Payload v2, use version [`<=0.1.3`](https://github.com/wkentdag/payload-plugin-scheduler/releases/tag/0.1.3).
 
 
 ![ci status](https://github.com/wkentdag/payload-plugin-scheduler/actions/workflows/test.yml/badge.svg)
@@ -75,7 +75,7 @@ ScheduledPostPlugin({
 
 ### `interval?: number`
 
-Time interval, in minutes, passed the Date field's time picker. Defaults to `5`.
+Time interval, in minutes, passed to the Date field's time picker and Payload's scheduled-publish draft config. Defaults to `5`.
 
 ```ts
 ScheduledPostPlugin({
@@ -105,7 +105,7 @@ ScheduledPostPlugin({
 })
 ```
 
-All properties are configurable except `type`, `admin.date.pickerAppearance`, `admin.date.timeIntervals`, `admin.components.afterInput`, and `admin.components.Cell`.
+All properties are configurable except `type`, `timezone`, `admin.date.pickerAppearance`, `admin.date.timeIntervals`, `admin.components.afterInput`, and `admin.components.Cell`.
 
 ## Manual Field Placement
 
@@ -145,18 +145,20 @@ export const Posts: CollectionConfig = {
 
 Manual placement is only valid inside collections or globals that are opted in through `ScheduledPostPlugin({ collections, globals })`.
 
-If you configure a custom field name in the plugin, use the same name for manual placement:
+You can also pass arguments to `publishDate` to override the global `publishDate` options, eg to override the admin display properties on a one-off basis. Overrides are merged with the top-level `publishDate` config, with `name` being the only field that's only configurable at the global level.
 
 ```ts
 publishDate({
-  name: 'scheduled_at',
-  label: 'Scheduled At',
+  admin: {
+    width: '50%',
+    description: 'Custom description for this collection only'
+  }
 })
 ```
 
 ## SafeRelationship
 
-Drop-in replacement for Payload's `relationship` field. It prevents users from publishing documents that reference related docs which are still draft or scheduled.
+A drop-in replacement for Payload's `relationship` field, this is a helper field that throws an error if a user attempts to publish a document with relationships to unpublished documents.
 
 ```ts
 import type { Field } from 'payload'

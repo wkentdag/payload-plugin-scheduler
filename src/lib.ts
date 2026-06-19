@@ -2,6 +2,10 @@ import type { PayloadRequest, Where } from 'payload'
 
 export const jobsCollectionSlug = 'payload-jobs'
 export const publishDateFieldCustomKey = 'payload-plugin-scheduler:publishDate'
+// publishDate() runs while collection/global fields are declared, before the plugin
+// can see its normalized config. Store manual display overrides here so the plugin
+// can merge them with the global publishDate config during config decoration.
+export const publishDateFieldOverridesCustomKey = 'payload-plugin-scheduler:publishDateOverrides'
 export const schedulePublishTaskSlug = 'schedulePublish'
 
 export type ScheduleTarget =

@@ -1,8 +1,12 @@
 import type { CollectionConfig, Field, GlobalConfig } from 'payload'
 import db from 'debug'
 
-import { publishDateFieldCustomKey } from './lib.js'
-import type { NormalizedScheduledPostConfig } from './types.js'
+import { resolvePublishDateField } from './config.js'
+import {
+  publishDateFieldCustomKey,
+  publishDateFieldOverridesCustomKey,
+} from './lib.js'
+import type { ManualPublishDateFieldOptions, NormalizedScheduledPostConfig } from './types.js'
 import PublishDateField from './fields/PublishDate/index.js'
 
 export const debug = db('payload-plugin-scheduler')
@@ -40,23 +44,31 @@ export const fieldHasName = (field: Field, name: string): boolean => {
   return 'name' in field && field.name === name
 }
 
+const getManualPublishDateFieldOverrides = (field: Field): ManualPublishDateFieldOptions => {
+  if ('custom' in field && field.custom?.[publishDateFieldOverridesCustomKey]) {
+    return field.custom[publishDateFieldOverridesCustomKey] as ManualPublishDateFieldOptions
+  }
+
+  return {}
+}
+
 /**
- * Manual publishDate() fields are created before the plugin can inspect
- * incomingConfig.admin.timezones, so opt those marked fields into Payload's
- * Date timezone support during config decoration.
+ * Manual publishDate() fields only mark placement. During config decoration,
+ * replace them with the normalized global field config plus any manual display
+ * overrides stored by publishDate().
  */
-export const applyTimezoneToManualPublishDateFields = (field: Field): Field => {
+export const applyManualPublishDateFieldOverrides = (
+  field: Field,
+  scheduleConfig: NormalizedScheduledPostConfig,
+): Field => {
   if (isPluginPublishDateField(field)) {
-    return {
-      ...field,
-      timezone: true,
-    } as Field
+    return resolvePublishDateField(scheduleConfig, getManualPublishDateFieldOverrides(field)) as Field
   }
 
   if ('fields' in field && Array.isArray(field.fields)) {
     return {
       ...field,
-      fields: field.fields.map(nestedField => applyTimezoneToManualPublishDateFields(nestedField)),
+      fields: field.fields.map(nestedField => applyManualPublishDateFieldOverrides(nestedField, scheduleConfig)),
     } as Field
   }
 
@@ -67,7 +79,7 @@ export const applyTimezoneToManualPublishDateFields = (field: Field): Field => {
         if ('fields' in tab && Array.isArray(tab.fields)) {
           return {
             ...tab,
-            fields: tab.fields.map(nestedField => applyTimezoneToManualPublishDateFields(nestedField)),
+            fields: tab.fields.map(nestedField => applyManualPublishDateFieldOverrides(nestedField, scheduleConfig)),
           }
         }
 
@@ -111,17 +123,7 @@ export const resolvePublishDateFieldsForEntity = ({
   }
 
   if (pluginFields.length === 1) {
-    const [pluginField] = pluginFields
-
-    if (!fieldHasName(pluginField, fieldName)) {
-      throw new Error(`[payload-plugin-scheduler] ${label} publishDate() field name must match plugin config name "${fieldName}".`)
-    }
-
-    if (scheduleConfig.publishDate.timezone) {
-      return fields.map(field => applyTimezoneToManualPublishDateFields(field))
-    }
-
-    return fields
+    return fields.map(field => applyManualPublishDateFieldOverrides(field, scheduleConfig))
   }
 
   const conflictingField = allFields.find((field) => fieldHasName(field, fieldName))

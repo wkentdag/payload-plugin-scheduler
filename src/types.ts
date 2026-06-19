@@ -13,12 +13,14 @@ type DateFieldAdminDate = NonNullable<DateFieldAdmin['date']>
 export type ReservedPublishDateComponentSlots = 'afterInput' | 'Cell'
 type ReservedPublishDateDateProps = 'pickerAppearance' | 'timeIntervals'
 
-export type PublishDateFieldOptions = Partial<Omit<DateField, 'admin' | 'type'>> & {
+export type PublishDateFieldOptions = Partial<Omit<DateField, 'admin' | 'timezone' | 'type'>> & {
   admin?: Partial<Omit<DateFieldAdmin, 'components' | 'date'>> & {
     components?: Partial<Omit<DateFieldAdminComponents, ReservedPublishDateComponentSlots>>
     date?: Partial<Omit<DateFieldAdminDate, ReservedPublishDateDateProps>>
   }
 }
+
+export type ManualPublishDateFieldOptions = Omit<PublishDateFieldOptions, 'name'>
 
 export interface ScheduledPostConfig {
   collections?: string[]

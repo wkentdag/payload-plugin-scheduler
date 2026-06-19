@@ -1,7 +1,12 @@
 import type { Config, DateField } from 'payload'
 
 import { publishDateFieldCustomKey } from './lib.js'
-import type { NormalizedScheduledPostConfig, ReservedPublishDateComponentSlots, ScheduledPostConfig } from './types.js'
+import type {
+  ManualPublishDateFieldOptions,
+  NormalizedScheduledPostConfig,
+  ReservedPublishDateComponentSlots,
+  ScheduledPostConfig,
+} from './types.js'
 
 type PublishDateComponents = Pick<NonNullable<NonNullable<DateField['admin']>['components']>, ReservedPublishDateComponentSlots>
 
@@ -81,5 +86,44 @@ export const normalizeScheduleConfig = (
       },
       ...(incomingConfig?.admin?.timezones ? { timezone: true } : {}),
     },
+  }
+}
+
+export const resolvePublishDateField = (
+  scheduleConfig: NormalizedScheduledPostConfig,
+  overrides: ManualPublishDateFieldOptions = {},
+): DateField => {
+  const publishDate = {
+    ...scheduleConfig.publishDate,
+    ...overrides,
+    admin: {
+      ...scheduleConfig.publishDate.admin,
+      ...overrides.admin,
+      date: {
+        ...scheduleConfig.publishDate.admin?.date,
+        ...overrides.admin?.date,
+      },
+      components: {
+        ...scheduleConfig.publishDate.admin?.components,
+        ...overrides.admin?.components,
+      },
+    },
+    custom: {
+      ...scheduleConfig.publishDate.custom,
+      ...overrides.custom,
+    },
+  }
+  const resolvedField = normalizeScheduleConfig({
+    ...scheduleConfig,
+    publishDate,
+  }).publishDate
+  const fieldWithoutTimezone = { ...resolvedField }
+
+  delete fieldWithoutTimezone.timezone
+
+  return {
+    ...fieldWithoutTimezone,
+    name: scheduleConfig.publishDate.name,
+    ...(scheduleConfig.publishDate.timezone ? { timezone: scheduleConfig.publishDate.timezone } : {}),
   }
 }

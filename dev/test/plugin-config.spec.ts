@@ -146,7 +146,10 @@ describe('plugin config', () => {
     const publishDateFields = collection.fields.filter(isPluginPublishDateField)
 
     expect(publishDateFields).toHaveLength(1)
-    expect(publishDateFields[0]).toBe(manualField)
+    expect(publishDateFields[0]).toMatchObject({
+      name: 'publish_date',
+      type: 'date',
+    })
   })
 
   it('throws when publishDate() is manually placed outside opted-in collections', () => {
@@ -176,8 +179,8 @@ describe('plugin config', () => {
     })).toThrow('already has a non-plugin field named "publish_date"')
   })
 
-  it('throws when manually placed publishDate() uses a different configured name', () => {
-    expect(() => applyPlugin({
+  it('uses the configured field name when publishDate() is manually placed', () => {
+    const config = applyPlugin({
       collections: [
         baseCollection([publishDate()]),
       ],
@@ -187,7 +190,48 @@ describe('plugin config', () => {
           name: 'scheduled_for',
         },
       },
-    })).toThrow('publishDate() field name must match plugin config name "scheduled_for"')
+    })
+    const collection = getCollection(config)
+    const publishDateFields = collection.fields.filter(isPluginPublishDateField)
+
+    expect(publishDateFields).toHaveLength(1)
+    expect(publishDateFields[0]).toMatchObject({
+      name: 'scheduled_for',
+    })
+  })
+
+  it('applies manual publishDate() display overrides without changing field identity', () => {
+    const config = applyPlugin({
+      collections: [
+        baseCollection([
+          publishDate({
+            admin: {
+              description: 'Collection-specific scheduling note',
+              width: '50%',
+            },
+            label: 'Collection Schedule',
+          }),
+        ]),
+      ],
+      pluginConfig: {
+        collections: ['posts'],
+        publishDate: {
+          name: 'scheduled_for',
+        },
+      },
+    })
+    const collection = getCollection(config)
+    const field = collection.fields.find(isPluginPublishDateField)
+
+    expect(field).toMatchObject({
+      admin: {
+        description: 'Collection-specific scheduling note',
+        width: '50%',
+      },
+      label: 'Collection Schedule',
+      name: 'scheduled_for',
+      type: 'date',
+    })
   })
 
   it('supports manual publishDate() placement in opted-in globals', () => {
@@ -205,7 +249,10 @@ describe('plugin config', () => {
     const publishDateFields = global.fields.filter(isPluginPublishDateField)
 
     expect(publishDateFields).toHaveLength(1)
-    expect(publishDateFields[0]).toBe(manualField)
+    expect(publishDateFields[0]).toMatchObject({
+      name: 'publish_date',
+      type: 'date',
+    })
   })
 
   it('leaves publish-date timezone unset by default', () => {
