@@ -1,76 +1,78 @@
-import { type JobCallback } from 'node-schedule'
-import { type Payload } from 'payload'
-import { type PaginatedDocs } from 'payload/dist/database/types'
-import { addMinutes } from 'date-fns'
-import { debug } from './util'
-import { type ScheduledPost } from './types'
+import type { PayloadRequest, Where } from 'payload'
 
-export async function getUpcomingPosts(
-  interval: number,
-  payload: Payload,
-): Promise<PaginatedDocs<ScheduledPost>> {
-  const now = new Date()
-  const nextInterval = addMinutes(now, interval)
+export const jobsCollectionSlug = 'payload-jobs'
+export const publishDateFieldCustomKey = 'payload-plugin-scheduler:publishDate'
+// publishDate() runs while collection/global fields are declared, before the plugin
+// can see its normalized config. Store manual display overrides here so the plugin
+// can merge them with the global publishDate config during config decoration.
+export const publishDateFieldOverridesCustomKey = 'payload-plugin-scheduler:publishDateOverrides'
+export const schedulePublishTaskSlug = 'schedulePublish'
 
-  debug(`Scanning for scheduled posts between \n${now} and \n${nextInterval}`)
-  const publishSchedules = await payload.find({
-    collection: 'scheduled_posts',
-    where: {
-      and: [
-        {
-          date: {
-            greater_than_equal: now,
-          },
-        },
-        {
-          date: {
-            less_than: nextInterval,
-          },
-        },
-        {
-          status: {
-            equals: 'queued',
-          },
-        },
-      ],
-    },
-    depth: 0,
-  })
+export type ScheduleTarget =
+  | {
+      id: number | string
+      slug: string
+      type: 'collection'
+    }
+  | {
+      slug: string
+      type: 'global'
+    }
 
-  // @ts-expect-error
-  return publishSchedules
+export const getScheduledPublishJobsWhere = (target: ScheduleTarget): Where => {
+  return {
+    and: [
+      {
+        completedAt: {
+          exists: false,
+        },
+      },
+      {
+        processing: {
+          equals: false,
+        },
+      },
+      {
+        taskSlug: {
+          equals: schedulePublishTaskSlug,
+        },
+      },
+      ...(target.type === 'global'
+        ? [
+            {
+              'input.global': {
+                equals: target.slug,
+              },
+            },
+          ]
+        : [
+            {
+              'input.doc.value': {
+                equals: String(target.id),
+              },
+            },
+            {
+              'input.doc.relationTo': {
+                equals: target.slug,
+              },
+            },
+          ]),
+    ],
+  }
 }
 
-export function publishScheduledPost(
-  { post, global }: Pick<ScheduledPost, 'post' | 'global'>,
-  payload: Payload,
-): JobCallback {
-  return async () => {
-    const tag = global || `${post!.relationTo} ${post!.value}`
-    payload.logger.info(`Publishing ${tag}`)
-    debug(`Publishing ${tag}`)
+export const deleteScheduledPublishJobs = async ({
+  req,
+  target,
+}: {
+  req: PayloadRequest
+  target: ScheduleTarget
+}): Promise<number | undefined> => {
+  const deleted = await req.payload.db.deleteMany({
+    collection: jobsCollectionSlug as never,
+    req,
+    where: getScheduledPublishJobsWhere(target),
+  })
 
-    const updateOp = (): ReturnType<typeof payload.updateGlobal> => global ? payload.updateGlobal({
-      slug: global,
-      data: {
-        _status: 'published'
-      }
-    }) : payload.update({
-      id: post!.value,
-      collection: post!.relationTo,
-      data: {
-        _status: 'published',
-      },
-    })
-
-    try {
-      await updateOp()
-      payload.logger.info(`[payload-plugin-scheduler] Published ${tag}`)
-    } catch (error: unknown) {
-      debug(`Error publishing ${tag} ${error?.toString()}`)
-      payload.logger.error(error, 
-        `[payload-plugin-scheduler] Failed to publish ${tag}`
-      )
-    }
-  }
+  return (deleted as { docs?: unknown[] } | undefined)?.docs?.length
 }

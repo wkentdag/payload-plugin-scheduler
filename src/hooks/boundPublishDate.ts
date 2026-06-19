@@ -1,18 +1,24 @@
-import type { CollectionBeforeChangeHook, GlobalBeforeChangeHook } from 'payload/types'
-import type { ScheduledPostConfig } from '../types'
+import type { CollectionBeforeChangeHook, GlobalBeforeChangeHook } from 'payload'
+
+import type { NormalizedScheduledPostConfig } from '../types.js'
 
 export default function boundPublishDate(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  scheduleConfig: ScheduledPostConfig,
+   
+  scheduleConfig: NormalizedScheduledPostConfig,
 ): CollectionBeforeChangeHook | GlobalBeforeChangeHook {
+  const publishDateFieldName = scheduleConfig.publishDate.name
+
   return ({ data }: { data: any }) => {
-    // eslint-disable-next-line no-underscore-dangle
+     
     const isPublishing = data?._status === 'published'
-    const pubDate = data?.publish_date ? new Date(data.publish_date) : undefined
+    const pubDate = data?.[publishDateFieldName]
+      ? new Date(data[publishDateFieldName])
+      : undefined
+
     if (isPublishing && pubDate && pubDate > new Date()) {
       return {
         ...data,
-        publish_date: new Date(),
+        [publishDateFieldName]: new Date(),
       }
     }
     return data

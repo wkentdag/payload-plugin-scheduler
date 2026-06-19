@@ -1,21 +1,27 @@
-import type { Config, Plugin } from 'payload/config'
+import type {
+  CollectionAfterChangeHook,
+  CollectionBeforeChangeHook,
+  CollectionConfig,
+  Config,
+  GlobalAfterChangeHook,
+  GlobalBeforeChangeHook,
+  GlobalConfig,
+  Plugin,
+} from 'payload'
 
-import type { CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, GlobalAfterChangeHook, GlobalBeforeChangeHook, GlobalConfig } from 'payload/types'
-import type { ScheduledPostConfig } from './types'
-import { onInit } from './init'
-import syncSchedule from './hooks/syncSchedule'
-import PublishDateField from './fields/PublishDate'
-import ScheduledPosts from './collections/ScheduledPosts'
-import deleteSchedule from './hooks/deleteSchedule'
-import boundPublishDate from './hooks/boundPublishDate'
+import { normalizeScheduleConfig } from './config.js'
+import boundPublishDate from './hooks/boundPublishDate.js'
+import deleteSchedule from './hooks/deleteSchedule.js'
+import syncSchedule from './hooks/syncSchedule.js'
+import type { ScheduledPostConfig } from './types.js'
+import { resolvePublishDateFieldsForEntity, withScheduledPublishVersions } from './util.js'
 
 export const ScheduledPostPlugin =
   (incomingScheduleConfig: ScheduledPostConfig): Plugin =>
   (incomingConfig: Config): Config => {
-    const scheduleConfig = {...incomingScheduleConfig }
-    if (!scheduleConfig.interval) {
-      scheduleConfig.interval = 5
-    }
+    const scheduleConfig = normalizeScheduleConfig(incomingScheduleConfig, incomingConfig)
+    const timeIntervals = scheduleConfig.interval
+    const publishDateFieldName = scheduleConfig.publishDate.name
 
     const config = { ...incomingConfig }
     const { collections, globals } = incomingConfig
@@ -25,7 +31,7 @@ export const ScheduledPostPlugin =
     }
 
     if (collections) {
-      const enabledCollections = scheduleConfig.collections || []
+      const { collections: enabledCollections } = scheduleConfig
 
       const collectionsWithScheduleHooks = collections
         ?.map(collection => {
@@ -33,9 +39,17 @@ export const ScheduledPostPlugin =
           const isEnabled = enabledCollections.indexOf(collection.slug) > -1
 
           if (isEnabled) {
+            const fields = resolvePublishDateFieldsForEntity({
+              enabled: isEnabled,
+              entityType: 'collection',
+              fields: collection.fields,
+              fieldName: publishDateFieldName,
+              scheduleConfig,
+              slug: collection.slug,
+            })
             const decoratedConfig: CollectionConfig = {
-              ...collection,
-              fields: [...collection.fields, PublishDateField(scheduleConfig)],
+              ...withScheduledPublishVersions(collection, timeIntervals),
+              fields,
               hooks: {
                 ...collection.hooks,
                 afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig) as CollectionAfterChangeHook],
@@ -56,20 +70,45 @@ export const ScheduledPostPlugin =
         })
         .filter(Boolean)
 
-      config.collections = [...collectionsWithScheduleHooks, ScheduledPosts(scheduleConfig)]
+
+      // ensure that publishDate field hasn't been manually added to any collections that aren't enabled by the plugin
+      collections.forEach((collection) => {
+        const isEnabled = enabledCollections.indexOf(collection.slug) > -1
+
+        if (!isEnabled) {
+          resolvePublishDateFieldsForEntity({
+            enabled: false,
+            entityType: 'collection',
+            fields: collection.fields,
+            fieldName: publishDateFieldName,
+            scheduleConfig,
+            slug: collection.slug,
+          })
+        }
+      })
+
+      config.collections = collectionsWithScheduleHooks
     }
 
     if (globals) {
-      const enabledGlobals = scheduleConfig.globals || []
+      const { globals: enabledGlobals } = scheduleConfig
 
       const globalsWithScheduleHooks = globals.map(global => {
         const { hooks: existingHooks } = global
         const isEnabled = enabledGlobals.indexOf(global.slug) > -1
 
         if (isEnabled) {
+          const fields = resolvePublishDateFieldsForEntity({
+            enabled: isEnabled,
+            entityType: 'global',
+            fields: global.fields,
+            fieldName: publishDateFieldName,
+            scheduleConfig,
+            slug: global.slug,
+          })
           const decoratedConfig: GlobalConfig = {
-            ...global,
-            fields: [...global.fields, PublishDateField(scheduleConfig)],
+            ...withScheduledPublishVersions(global, timeIntervals),
+            fields,
             hooks: {
               ...existingHooks,
               afterChange: [...(existingHooks?.afterChange || []), syncSchedule(scheduleConfig) as GlobalAfterChangeHook],
@@ -86,13 +125,26 @@ export const ScheduledPostPlugin =
         return global
       }).filter(Boolean)
 
+      globals.forEach((global) => {
+        const isEnabled = enabledGlobals.indexOf(global.slug) > -1
+
+        if (!isEnabled) {
+          resolvePublishDateFieldsForEntity({
+            enabled: false,
+            entityType: 'global',
+            fields: global.fields,
+            fieldName: publishDateFieldName,
+            scheduleConfig,
+            slug: global.slug,
+          })
+        }
+      })
+
       config.globals = globalsWithScheduleHooks
     }
 
-    config.onInit = async payload => {
-      if (incomingConfig.onInit) await incomingConfig.onInit(payload)
-      // Add additional onInit code by using the onInitExtension function
-      onInit(scheduleConfig, payload)
+    config.jobs = {
+      ...(incomingConfig.jobs || {}),
     }
 
     return config

@@ -17,7 +17,7 @@ describe('SafeRelationshipField', () => {
   })
 
   describe('false positives', () => {
-    test('published docs', async () => {
+    it('published docs', async () => {
       const publishedPost = await payload.create({
         collection: 'posts',
         data: {
@@ -41,7 +41,7 @@ describe('SafeRelationshipField', () => {
       expect(published.featured_post.id).toEqual(publishedPost.id)
     })
 
-    test('draft docs', async () => {
+    it('draft docs', async () => {
       const scheduledPost = await payload.create({
         collection: 'posts',
         data: {
@@ -65,7 +65,7 @@ describe('SafeRelationshipField', () => {
       expect(draftPage.featured_post.id).toBe(scheduledPost.id)
     })
 
-    test('polymorphic field', async () => {
+    it('polymorphic field', async () => {
       const page = await payload.create({
         collection: 'pages',
         data: {
@@ -87,7 +87,7 @@ describe('SafeRelationshipField', () => {
       })).resolves.not.toThrow()
     })
 
-    test('mixed field', async () => {
+    it('mixed field', async () => {
       const page = await payload.create({
         collection: 'pages',
         data: {
@@ -119,7 +119,7 @@ describe('SafeRelationshipField', () => {
   })
 
   describe('errors', () => {
-    test('related document is scheduled after current document', async () => {
+    it('related document is scheduled after current document', async () => {
       const scheduledPost = await payload.create({
         collection: 'posts',
         data: {
@@ -136,10 +136,10 @@ describe('SafeRelationshipField', () => {
           featured_post: scheduledPost.id,
           _status: 'published',
         }
-      })).rejects.toThrow('The following field is invalid: featured_post')
+      })).rejects.toThrow('The following field is invalid: Featured Post')
     })
 
-    test('one invalid document out of multiple', async () => {
+    it('one invalid document out of multiple', async () => {
       const scheduledPage = await payload.create({
         collection: 'pages',
         data: {
@@ -167,10 +167,10 @@ describe('SafeRelationshipField', () => {
           ],
           _status: 'published',
         }
-      })).rejects.toThrow('The following field is invalid: related_pages')
+      })).rejects.toThrow('The following field is invalid: Related Pages')
     })
   
-    test('one invalid document out of polymorphic', async () => {
+    it('one invalid document out of polymorphic', async () => {
       const scheduledPage = await payload.create({
         collection: 'pages',
         data: {
@@ -198,10 +198,10 @@ describe('SafeRelationshipField', () => {
           ],
           _status: 'published',
         }
-      })).rejects.toThrow('The following field is invalid: polymorphic')
+      })).rejects.toThrow('The following field is invalid: Polymorphic')
     })
   
-    test('one invalid document out of mixed', async () => {
+    it('one invalid document out of mixed', async () => {
       const scheduledPage = await payload.create({
         collection: 'pages',
         data: {
@@ -228,7 +228,7 @@ describe('SafeRelationshipField', () => {
           ],
           _status: 'published',
         }
-      })).rejects.toThrow('The following field is invalid: mixed_relationship')
+      })).rejects.toThrow('The following field is invalid: Mixed_relationship')
     })
   })
 })

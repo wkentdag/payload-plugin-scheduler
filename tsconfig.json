@@ -1,23 +1,20 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "target": "es5",
-    "outDir": "./dist",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "rootDir": "./src",
     "allowJs": true,
-    "module": "commonjs",
-    "sourceMap": true,
-    "jsx": "react",
-    "esModuleInterop": true,
-    "declaration": true,
-    "declarationDir": "./dist",
     "skipLibCheck": true,
     "strict": true,
+    "esModuleInterop": true,
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "declaration": true,
+    "declarationDir": "./dist",
+    "emitDeclarationOnly": true,
+    "target": "ES2022"
   },
-  "include": [
-    "src/**/*",
-  ],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

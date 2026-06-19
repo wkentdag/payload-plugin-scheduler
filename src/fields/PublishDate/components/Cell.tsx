@@ -1,10 +1,16 @@
+'use client'
+
 import React from 'react'
-import { Props } from 'payload/components/views/Cell'
-import { formatDateTime } from '../util'
-import Icon from './Icon'
+
+import { formatDateTime } from '../util.js'
+import Icon from './Icon.js'
+
+interface Props {
+  cellData?: unknown
+}
 
 const Cell: React.FC<Props> = ({ cellData }) => {
-  if (!cellData) return null
+  if (!cellData) {return null}
 
   const pubDate = new Date(cellData as string)
   const scheduled = pubDate > new Date()

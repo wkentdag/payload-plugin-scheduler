@@ -1,27 +1,31 @@
-import type { DateField } from 'payload/types'
-import type { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
-import InputField from './components/InputField'
-import type { ScheduledPostConfig } from '../../types'
-import Cell from './components/Cell'
+import type { DateField } from 'payload'
 
-const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
-  const datePickerProps: ConditionalDateProps = {
-    pickerAppearance: 'dayAndTime',
-    timeIntervals: scheduleConfig.interval,
-  }
+import { defaultOpts, normalizeScheduleConfig } from '../../config.js'
+import {
+  publishDateFieldCustomKey,
+  publishDateFieldOverridesCustomKey,
+} from '../../lib.js'
+import type {
+  ManualPublishDateFieldOptions,
+  NormalizedScheduledPostConfig,
+  ScheduledPostConfig,
+} from '../../types.js'
 
+const PublishDateField = (
+  scheduleConfig: NormalizedScheduledPostConfig | ScheduledPostConfig,
+): DateField => {
+  return normalizeScheduleConfig(scheduleConfig).publishDate
+}
+
+export const publishDate = (options: ManualPublishDateFieldOptions = {}): DateField => {
+  // This helper cannot access the plugin's normalized config yet. It returns a
+  // marked field that preserves placement and carries manual display overrides
+  // for the plugin to resolve later.
   return {
-    name: 'publish_date',
-    label: 'Publish Date',
-    index: true,
-    type: 'date',
-    admin: {
-      date: datePickerProps,
-      position: 'sidebar',
-      components: {
-        Field: InputField(datePickerProps),
-        Cell,
-      },
+    ...defaultOpts.publishDate,
+    custom: {
+      [publishDateFieldCustomKey]: true,
+      [publishDateFieldOverridesCustomKey]: options,
     },
   }
 }

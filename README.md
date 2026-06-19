@@ -1,13 +1,22 @@
 # payload-plugin-scheduler
 
-Payload plugin that enables scheduled publishing for draft-enabled collections, inspired by wordpress post scheduler.
+Plugin that adds an imperative field-based scheduling flow on top of Payload's native functionality, with at-a-glance schedule status in the admin UI.
+
+Starting in v3, Payload has a built-in workflow for scheduling posts via the job queue and "Schedule Publish" drawer. This plugin adds a configurable Date field to opted-in collections and globals that, when set to a future date, automatically queues a `schedulePublish` job in the background with `waitUntil` set to that date. This results in a more ergonomic workflow for editors where they can view the schedule status at a glance in the document editor, and sort/filter by publish time in the list view.
+
+This plugin was originally written for Payload v2, and included a background scheduler that's since been superseded by v3's native queue. For Payload v2, use version [`<=0.1.3`](https://github.com/wkentdag/payload-plugin-scheduler/releases/tag/0.1.3).
+
 
 ![ci status](https://github.com/wkentdag/payload-plugin-scheduler/actions/workflows/test.yml/badge.svg)
+
+## Requirements
+
+- Payload v3
 
 ## Installation
 
 ```sh
-npm i payload-plugin-scheduler
+npm add payload-plugin-scheduler
 ```
 
 ## Usage
@@ -15,88 +24,160 @@ npm i payload-plugin-scheduler
 ```ts
 // payload.config.ts
 
-import { buildConfig } from 'payload/config'
+import { buildConfig } from 'payload'
 import { ScheduledPostPlugin } from 'payload-plugin-scheduler'
+
 import Pages from './collections/Pages'
 import Posts from './collections/Posts'
 import Home from './globals/Home'
 
 export default buildConfig({
-  collections: [Pages, Posts],
+  collections: [Pages, Posts, Users],
   globals: [Home],
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts'],
       globals: ['home'],
       interval: 10,
-    })
-  ]
-  // ...more config
+    }),
+  ],
 })
-
 ```
+
+## Running Jobs
+
+This plugin creates Payload Jobs; it does not run the job worker for you. Your host app is responsible for running Payload's Jobs Queue.
+
+See Payload's docs for current deployment guidance:
+
+- [Jobs Queue](https://payloadcms.com/docs/jobs-queue/overview)
+- [Scheduled Publish](https://payloadcms.com/docs/versions/drafts#scheduled-publish)
 
 ## Options
 
-At least one collection / global is required.
+Enabled collections and globals must support drafts. The plugin merges the required scheduled-publish draft config into `versions.drafts.schedulePublish` and preserves existing version/draft settings.
 
 ### `collections?: string[]`
 
-An array of collection slugs. All collections must have drafts enabled.
+```ts
+ScheduledPostPlugin({
+  collections: ['pages', 'posts'],
+})
+```
 
 ### `globals?: string[]`
 
-An array of global slugs. All globals must have drafts enabled.
+```ts
+ScheduledPostPlugin({
+  globals: ['home'],
+})
+```
 
 ### `interval?: number`
 
-Specify how frequently to check for scheduled posts (in minutes).
-This value will also be passed to the `DatePicker` component. Defaults to 5 mins.
+Time interval, in minutes, passed to the Date field's time picker and Payload's scheduled-publish draft config. Defaults to `5`.
 
+```ts
+ScheduledPostPlugin({
+  collections: ['posts'],
+  interval: 15,
+})
+```
 
-### `scheduledPosts?: Partial<CollectionConfig>`
+Your job queue cron interval should match this value, eg `autoRun: [{ cron: '*/5 * * * *' }]`.
 
-Custom configuration for the scheduled posts collection that gets merged with the defaults.
+### `publishDate?: object`
 
+Configure the generated publish-date field.
 
-## Utils
+```ts
+ScheduledPostPlugin({
+  collections: ['posts'],
+  // these are the default values
+  publishDate: {
+    name: 'publish_date',
+    label: 'Publish Date',
+    index: true,
+    admin: {
+      position: 'sidebar',
+    },
+  },
+})
+```
 
-### `SafeRelationship`
+All properties are configurable except `type`, `timezone`, `admin.date.pickerAppearance`, `admin.date.timeIntervals`, `admin.components.afterInput`, and `admin.components.Cell`.
 
-Drop-in replacement for the default [`relationship` field](https://payloadcms.com/docs/fields/relationship) to prevent users from publishing documents that have references to other docs that are still in draft / scheduled mode.
+## Manual Field Placement
+
+By default, the plugin injects the publish-date field into every opted-in collection and global. If you need to place the field manually, use the exported `publishDate()` helper.
+
+```ts
+import type { CollectionConfig } from 'payload'
+import { publishDate } from 'payload-plugin-scheduler'
+
+export const Posts: CollectionConfig = {
+  slug: 'posts',
+  versions: {
+    drafts: true,
+  },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            {
+              name: 'title',
+              type: 'text',
+            },
+          ],
+        },
+        {
+          label: 'Publishing',
+          fields: [publishDate()],
+        },
+      ],
+    },
+  ],
+}
+```
+
+Manual placement is only valid inside collections or globals that are opted in through `ScheduledPostPlugin({ collections, globals })`.
+
+You can also pass arguments to `publishDate` to override the global `publishDate` options, eg to override the admin display properties on a one-off basis. Overrides are merged with the top-level `publishDate` config, with `name` being the only field that's only configurable at the global level.
+
+```ts
+publishDate({
+  admin: {
+    width: '50%',
+    description: 'Custom description for this collection only'
+  }
+})
+```
+
+## SafeRelationship
+
+A drop-in replacement for Payload's `relationship` field, this is a helper field that throws an error if a user attempts to publish a document with relationships to unpublished documents.
 
 ```ts
 import type { Field } from 'payload'
 import { SafeRelationship } from 'payload-plugin-scheduler'
 
-const example: Field = SafeRelationship({
+export const featuredContent: Field = SafeRelationship({
   name: 'featured_content',
   relationTo: ['posts', 'pages'],
   hasMany: true,
 })
 ```
 
-## Approach
+## Migration From v2
 
-In a nutshell, the plugin creates a `publish_date` field that it uses to determine whether a pending draft update needs to be scheduled. If a draft document is saved with a `publish_date` that's in the future, it will be scheduled and automatically published on that date.
+The v3 plugin no longer creates or writes to a plugin-owned `scheduled_posts` collection, and it no longer uses `node-schedule`. Scheduled publishes are represented as native Payload `schedulePublish` jobs in Payload's jobs collection.
 
-### `publish_date`
+To upgrade:
 
-Datetime field added to enabled collections. Custom `Field` and `Cell` components display the schedule status in the client-side UI.
-
-### `scheduled_posts`
-
-Collection added by the plugin to store pending schedule updates. Can be customized via `scheduledPosts` option.
-
-### Cron
-
-A configurable timer checks for any posts to be scheduled in the upcoming interval window. For each hit, it creates a separate job that's fired at that document's `publish_date` (via [node-schedule](https://github.com/node-schedule/node-schedule)). The idea here is that you can configure your interval window to avoid super long running tasks that are more prone to flaking.
-
-
-## Caveats
-
-* This plugin doesn't support Payload 3.0 beta. I intend to update it once 3.0 is stable, but it'll require substantial re-architecting to work in a serverless environment.
-
-* There's no logic in place to dedupe schedules across multiple instances of a single app (see https://github.com/wkentdag/payload-plugin-scheduler/issues/9)
-
-* There's no logic in place to automatically publish any pending scheduled posts that weren't published due to server downtime. 
+- Remove any application code that reads from or customizes `scheduled_posts`.
+- Configure and run Payload Jobs in the host app. Dedicated servers and serverless deployments need different worker/cron strategies.
+- If you use Payload `admin.timezones`, verify the resulting `<fieldName>_tz` values in your own scheduling flow.
+- Generate and run a new database migration.
