@@ -1,12 +1,12 @@
 import type { CollectionBeforeDeleteHook } from 'payload'
 
 import { deleteScheduledPublishJobs } from '../lib.js'
-import type { ScheduledPostConfig } from '../types.js'
+import type { NormalizedScheduledPostConfig } from '../types.js'
 import { debug } from '../util.js'
 
 export default function deleteSchedule(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  scheduleConfig: ScheduledPostConfig,
+  scheduleConfig: NormalizedScheduledPostConfig,
 ): CollectionBeforeDeleteHook {
   return async ({ id, collection, req }) => {
     debug(`deleteSchedule ${collection.slug} ${id}`)

@@ -46,7 +46,10 @@ export const SafeRelationship: (
     }
 
     // abort if the current document is an unscheduled draft
-    if (data?._status === 'draft' && !data?.[currentPublishDateFieldName]) {
+    if (
+      !currentPublishDateFieldName ||
+      data?._status === 'draft' && !data?.[currentPublishDateFieldName]
+    ) {
       return true
     }
 
@@ -65,9 +68,11 @@ export const SafeRelationship: (
     relationsTo.forEach((name) => {
       const collection = config.collections.find((collection) => collection.slug === name)
       const useAsTitle = collection?.admin.useAsTitle
-      if (collection?.versions?.drafts && useAsTitle) {
+      const publishDateFieldName = getPublishDateFieldNameFromFields(collection?.fields || [])
+
+      if (collection?.versions?.drafts && useAsTitle && publishDateFieldName) {
         relatedDraftCollections[collection.slug] = {
-          publishDateFieldName: getPublishDateFieldNameFromFields(collection.fields),
+          publishDateFieldName,
           titleFieldName: useAsTitle,
         }
       }

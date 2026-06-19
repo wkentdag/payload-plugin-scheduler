@@ -1,4 +1,4 @@
-import type { CollectionConfig, Config, GlobalConfig } from 'payload'
+import { buildConfig, type CollectionConfig, type Config, type GlobalConfig } from 'payload'
 
 import { publishDate, ScheduledPostPlugin } from '../../src/index.js'
 import { isPluginPublishDateField } from '../../src/util.js'
@@ -81,6 +81,52 @@ describe('plugin config', () => {
       type: 'date',
     })
     expect(field && isPluginPublishDateField(field)).toBe(true)
+  })
+
+  it('preserves configurable publish-date DateField options', () => {
+    const config = applyPlugin({
+      pluginConfig: {
+        collections: ['posts'],
+        interval: 15,
+        publishDate: {
+          admin: {
+            description: 'Future publication time',
+            date: {
+              displayFormat: 'MMM d, yyyy h:mm a',
+            },
+          },
+          defaultValue: '2026-01-01T00:00:00.000Z',
+        },
+      },
+    })
+    const collection = getCollection(config)
+    const field = collection.fields.find(isPluginPublishDateField)
+
+    expect(field).toMatchObject({
+      admin: {
+        date: {
+          displayFormat: 'MMM d, yyyy h:mm a',
+          timeIntervals: 15,
+        },
+        description: 'Future publication time',
+      },
+      defaultValue: '2026-01-01T00:00:00.000Z',
+    })
+  })
+
+  it('throws when publish-date reserved component slots are configured', () => {
+    expect(() => applyPlugin({
+      pluginConfig: {
+        collections: ['posts'],
+        publishDate: {
+          admin: {
+            components: {
+              afterInput: ['payload-plugin-scheduler/client#PublishDateCell'],
+            } as never,
+          },
+        },
+      },
+    })).toThrow('publishDate.admin.components.afterInput is managed by the plugin')
   })
 
   it('does not auto-inject a duplicate when publishDate() is manually placed', () => {
@@ -185,6 +231,51 @@ describe('plugin config', () => {
     expect(field).toBeTruthy()
     expect(field).toMatchObject({
       timezone: true,
+    })
+  })
+
+  it('inherits top-level admin.timezones for Payload timezone picker config', async () => {
+    const config = await buildConfig({
+      admin: {
+        timezones: {
+          defaultTimezone: 'Europe/Berlin',
+          supportedTimezones: [
+            {
+              label: 'Berlin',
+              value: 'Europe/Berlin',
+            },
+            {
+              label: 'Pacific Time',
+              value: 'America/Los_Angeles',
+            },
+          ],
+        },
+      },
+      collections: [baseCollection()],
+      plugins: [
+        ScheduledPostPlugin({
+          collections: ['posts'],
+        }),
+      ],
+      secret: 'test-secret',
+    })
+    const collection = getCollection(config)
+    const timezoneField = collection.fields.find((field) => 'name' in field && field.name === 'publish_date_tz')
+
+    expect(timezoneField).toMatchObject({
+      defaultValue: 'Europe/Berlin',
+      name: 'publish_date_tz',
+      options: [
+        {
+          label: 'Berlin',
+          value: 'Europe/Berlin',
+        },
+        {
+          label: 'Pacific Time',
+          value: 'America/Los_Angeles',
+        },
+      ],
+      type: 'select',
     })
   })
 })

@@ -1,14 +1,11 @@
-import type { Field } from 'payload'
+import type { CollectionConfig, Field, GlobalConfig } from 'payload'
 import db from 'debug'
 
 import { publishDateFieldCustomKey } from './lib.js'
-import type { ScheduledPostConfig } from './types.js'
+import type { NormalizedScheduledPostConfig } from './types.js'
+import PublishDateField from './fields/PublishDate/index.js'
 
 export const debug = db('payload-plugin-scheduler')
-
-export const getPublishDateFieldName = (scheduleConfig: ScheduledPostConfig): string => {
-  return scheduleConfig.publishDate?.name || 'publish_date'
-}
 
 export const flattenFields = (fields: Field[]): Field[] => {
   return fields.flatMap((field) => {
@@ -34,20 +31,133 @@ export const isPluginPublishDateField = (field: Field): boolean => {
   return 'custom' in field && field.custom?.[publishDateFieldCustomKey] === true
 }
 
-export const getPublishDateFieldNameFromFields = (fields: Field[]): string => {
+export const getPublishDateFieldNameFromFields = (fields: Field[]): string | undefined => {
   const publishDateField = flattenFields(fields).find(isPluginPublishDateField)
-
-  if (publishDateField && 'name' in publishDateField) {
-    return publishDateField.name
-  }
-
-  return 'publish_date'
+  return (publishDateField as Field & { name: string })?.name
 }
 
 export const fieldHasName = (field: Field, name: string): boolean => {
   return 'name' in field && field.name === name
 }
 
-export const getEntityLabel = (type: 'collection' | 'global', slug: string): string => {
-  return `${type} "${slug}"`
+/**
+ * Manual publishDate() fields are created before the plugin can inspect
+ * incomingConfig.admin.timezones, so opt those marked fields into Payload's
+ * Date timezone support during config decoration.
+ */
+export const applyTimezoneToManualPublishDateFields = (field: Field): Field => {
+  if (isPluginPublishDateField(field)) {
+    return {
+      ...field,
+      timezone: true,
+    } as Field
+  }
+
+  if ('fields' in field && Array.isArray(field.fields)) {
+    return {
+      ...field,
+      fields: field.fields.map(nestedField => applyTimezoneToManualPublishDateFields(nestedField)),
+    } as Field
+  }
+
+  if ('tabs' in field && Array.isArray(field.tabs)) {
+    return {
+      ...field,
+      tabs: field.tabs.map((tab) => {
+        if ('fields' in tab && Array.isArray(tab.fields)) {
+          return {
+            ...tab,
+            fields: tab.fields.map(nestedField => applyTimezoneToManualPublishDateFields(nestedField)),
+          }
+        }
+
+        return tab
+      }),
+    } as Field
+  }
+
+  return field
+}
+
+/**For each configured collection/global, validate any manually placed
+ * publishDate() field, prevent name collisions, and auto-inject the field when
+ * the entity is opted in but has not placed it manually.
+ */ 
+export const resolvePublishDateFieldsForEntity = ({
+  enabled,
+  entityType,
+  fields,
+  fieldName,
+  scheduleConfig,
+  slug,
+}: {
+  enabled: boolean
+  entityType: 'collection' | 'global'
+  fields: Field[]
+  fieldName: string
+  scheduleConfig: NormalizedScheduledPostConfig
+  slug: string
+}): Field[] => {
+  const allFields = flattenFields(fields)
+  const pluginFields = allFields.filter(isPluginPublishDateField)
+  const label = `${entityType} "${slug}"`
+
+  if (pluginFields.length > 0 && !enabled) {
+    throw new Error(`[payload-plugin-scheduler] publishDate() can only be used in opted-in collections/globals. Found manual field in ${label}.`)
+  }
+
+  if (!enabled) {
+    return fields
+  }
+
+  if (pluginFields.length === 1) {
+    const [pluginField] = pluginFields
+
+    if (!fieldHasName(pluginField, fieldName)) {
+      throw new Error(`[payload-plugin-scheduler] ${label} publishDate() field name must match plugin config name "${fieldName}".`)
+    }
+
+    if (scheduleConfig.publishDate.timezone) {
+      return fields.map(field => applyTimezoneToManualPublishDateFields(field))
+    }
+
+    return fields
+  }
+
+  const conflictingField = allFields.find((field) => fieldHasName(field, fieldName))
+
+  if (conflictingField) {
+    throw new Error(`[payload-plugin-scheduler] ${label} already has a non-plugin field named "${fieldName}". Use publishDate() or configure a different publishDate.name.`)
+  }
+
+  return [...fields, PublishDateField(scheduleConfig)]
+}
+
+/**
+ * Merge the plugin's schedulePublish settings into the entity's versions.drafts.schedulePublish settings.
+ */
+export const withScheduledPublishVersions = <T extends CollectionConfig | GlobalConfig>(
+  entity: T,
+  timeIntervals: number,
+): T => {
+  const versions = typeof entity.versions === 'object' ? entity.versions : {}
+  const existingDrafts = versions.drafts
+  const drafts = typeof existingDrafts === 'object' ? existingDrafts : {}
+  const existingSchedulePublish = drafts.schedulePublish
+  const schedulePublish =
+    typeof existingSchedulePublish === 'object' ? existingSchedulePublish : {}
+
+  return {
+    ...entity,
+    versions: {
+      ...versions,
+      drafts: {
+        ...drafts,
+        schedulePublish: {
+          ...schedulePublish,
+          timeIntervals,
+        },
+      },
+    },
+  } as T
 }

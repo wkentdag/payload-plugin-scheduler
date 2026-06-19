@@ -1,13 +1,12 @@
 import type { CollectionBeforeChangeHook, GlobalBeforeChangeHook } from 'payload'
 
-import type { ScheduledPostConfig } from '../types.js'
-import { getPublishDateFieldName } from '../util.js'
+import type { NormalizedScheduledPostConfig } from '../types.js'
 
 export default function boundPublishDate(
    
-  scheduleConfig: ScheduledPostConfig,
+  scheduleConfig: NormalizedScheduledPostConfig,
 ): CollectionBeforeChangeHook | GlobalBeforeChangeHook {
-  const publishDateFieldName = getPublishDateFieldName(scheduleConfig)
+  const publishDateFieldName = scheduleConfig.publishDate.name
 
   return ({ data }: { data: any }) => {
      

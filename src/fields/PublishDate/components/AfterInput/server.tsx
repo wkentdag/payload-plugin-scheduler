@@ -12,17 +12,14 @@ const AfterInputServer: DateFieldServerComponent = async ({ value, siblingData, 
   })
   const scheduledJob = scheduledJobs.docs[0]
 
-  return (<div>AfterInputServer
-    field value: {value}
-    pub status: {siblingData?._status}
-    job: {scheduledJob?.waitUntil}
+  return (
     <AfterInputClient
       scheduledAt={scheduledJob?.waitUntil}
       path={path}
       currentFormValue={value}
       status={siblingData?._status}
     />
-  </div>)
+  )
 }
 
 export default AfterInputServer

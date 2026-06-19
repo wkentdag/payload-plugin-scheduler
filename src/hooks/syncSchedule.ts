@@ -1,8 +1,8 @@
 import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
 import { deleteScheduledPublishJobs, schedulePublishTaskSlug } from '../lib.js'
-import { type ScheduledPostConfig } from '../types.js'
-import { debug, getPublishDateFieldName } from '../util.js'
+import { type NormalizedScheduledPostConfig } from '../types.js'
+import { debug } from '../util.js'
 
 type GlobalArgs = Parameters<GlobalAfterChangeHook>[0]
 type CollectionArgs = Parameters<CollectionAfterChangeHook>[0]
@@ -23,9 +23,9 @@ function isGlobal(args:  CollectionArgs| GlobalArgs): args is GlobalArgs {
 
 export default function syncSchedule(
    
-  scheduleConfig: ScheduledPostConfig,
+  scheduleConfig: NormalizedScheduledPostConfig,
 ): CollectionAfterChangeHook | GlobalAfterChangeHook {
-  const publishDateFieldName = getPublishDateFieldName(scheduleConfig)
+  const publishDateFieldName = scheduleConfig.publishDate.name
   const timezoneFieldName = `${publishDateFieldName}_tz`
 
   return async (args: GlobalArgs | CollectionArgs) => {

@@ -1,11 +1,12 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
+import { normalizeScheduleConfig } from '../../src/config.js'
 import syncSchedule from '../../src/hooks/syncSchedule.js'
 
 const buildArgs = (data: Record<string, unknown>) => {
   const deleteMany = vi.fn().mockResolvedValue({ docs: [] })
   const queue = vi.fn().mockResolvedValue({ id: 'job-id' })
-  const hook = syncSchedule({ collections: ['posts'] }) as CollectionAfterChangeHook
+  const hook = syncSchedule(normalizeScheduleConfig({ collections: ['posts'] })) as CollectionAfterChangeHook
 
   return {
     args: {
