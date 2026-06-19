@@ -1,6 +1,8 @@
 import type { DateField } from 'payload'
 
-import type { ScheduledPostConfig } from '../../types.js'
+import { publishDateFieldCustomKey } from '../../lib.js'
+import type { PublishDateFieldOptions, ScheduledPostConfig } from '../../types.js'
+import { getPublishDateFieldName } from '../../util.js'
 
 type DatePickerProps = NonNullable<NonNullable<DateField['admin']>['date']>
 
@@ -11,19 +13,29 @@ const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
   }
 
   return {
-    name: 'publish_date',
-    label: 'Publish Date',
+    name: getPublishDateFieldName(scheduleConfig),
+    label: scheduleConfig.publishDate?.label || 'Publish Date',
     index: true,
     type: 'date',
     admin: {
       date: datePickerProps,
-      position: 'sidebar',
+      position: scheduleConfig.publishDate?.admin?.position || 'sidebar',
       components: {
         afterInput: ['payload-plugin-scheduler/rsc#PublishDateAfterInputServer'],
         Cell: 'payload-plugin-scheduler/client#PublishDateCell',
       },
     },
+    custom: {
+      [publishDateFieldCustomKey]: true,
+    },
   }
+}
+
+export const publishDate = (options: PublishDateFieldOptions = {}): DateField => {
+  return PublishDateField({
+    interval: 5,
+    publishDate: options,
+  })
 }
 
 export default PublishDateField

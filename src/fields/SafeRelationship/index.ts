@@ -4,9 +4,10 @@ import type {
   TypeWithID,
 } from 'payload'
 
+import { getPublishDateFieldNameFromFields } from '../../util.js'
+
 type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
   _status?: 'published' | 'draft'
-  publish_date?: string
 
 }
 
@@ -32,13 +33,20 @@ export const SafeRelationship: (
     const data = rawData as MaybeScheduledDoc
     const payload = req.payload
     const { config } = payload
+    const currentCollection = options.collectionSlug
+      ? config.collections.find((collection) => collection.slug === options.collectionSlug)
+      : undefined
+    const currentPublishDateFieldName = currentCollection
+      ? getPublishDateFieldNameFromFields(currentCollection.fields)
+      : getPublishDateFieldNameFromFields([])
+
     // abort if the field is empty
     if (!value || Array.isArray(value) && value.length === 0) {
       return true
     }
 
     // abort if the current document is an unscheduled draft
-    if (data?._status === 'draft' && !data?.publish_date) {
+    if (data?._status === 'draft' && !data?.[currentPublishDateFieldName]) {
       return true
     }
 
@@ -52,13 +60,16 @@ export const SafeRelationship: (
 
     // build a list of collections we need to check draft status for
     // format: { [collectionSlug]: <titleFieldKey> } so we can generate a pretty error message later
-    const relatedDraftCollections: Record<string, string> = {}
+    const relatedDraftCollections: Record<string, { publishDateFieldName: string; titleFieldName: string }> = {}
 
     relationsTo.forEach((name) => {
       const collection = config.collections.find((collection) => collection.slug === name)
       const useAsTitle = collection?.admin.useAsTitle
       if (collection?.versions?.drafts && useAsTitle) {
-        relatedDraftCollections[collection.slug] = useAsTitle
+        relatedDraftCollections[collection.slug] = {
+          publishDateFieldName: getPublishDateFieldNameFromFields(collection.fields),
+          titleFieldName: useAsTitle,
+        }
       }
     })
 
@@ -85,9 +96,9 @@ export const SafeRelationship: (
       try {
         const doc = await payload.findByID({
           id,
-          collection,
+          collection: collection as never,
           req,
-        });
+        }) as MaybeScheduledDoc
       
         // Only add the document if it's in draft status
         if (doc && doc._status === 'draft') {
@@ -107,21 +118,22 @@ export const SafeRelationship: (
     if (data?._status === 'published' || !data?._status) {
       // for published docs, or docs w/o drafts, we assume they are currently being published
       publishDate = new Date()
-    } else if (data?._status === 'draft' && data?.publish_date) {
+    } else if (data?._status === 'draft' && data?.[currentPublishDateFieldName]) {
       // for scheduled documents, use the set publish_date
-      publishDate = new Date(data.publish_date)
+      publishDate = new Date(data[currentPublishDateFieldName] as string)
     }
 
     // loop over the related documents and find any stragglers
     relatedDocs
       .forEach((rd) => {
-        const docPubDate = rd.publish_date
-          ? new Date(rd.publish_date)
+        const relatedCollection = relatedDraftCollections[rd.collection]
+        const docPubDate = rd[relatedCollection.publishDateFieldName]
+          ? new Date(rd[relatedCollection.publishDateFieldName] as string)
           : null // this check is necessary otherwise new Date(null) => 1/1/70
         if (!docPubDate || docPubDate >= publishDate) {
           invalidRelatedDocs.push({
             collection: rd.collection,
-            title: rd[relatedDraftCollections[rd.collection]] as string
+            title: rd[relatedCollection.titleFieldName] as string
           })
         }
       })

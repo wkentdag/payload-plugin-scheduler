@@ -2,7 +2,7 @@ import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
 import { deleteScheduledPublishJobs, schedulePublishTaskSlug } from '../lib.js'
 import { type ScheduledPostConfig } from '../types.js'
-import { debug } from '../util.js'
+import { debug, getPublishDateFieldName } from '../util.js'
 
 type GlobalArgs = Parameters<GlobalAfterChangeHook>[0]
 type CollectionArgs = Parameters<CollectionAfterChangeHook>[0]
@@ -12,9 +12,11 @@ function isGlobal(args:  CollectionArgs| GlobalArgs): args is GlobalArgs {
 }
 
 export default function syncSchedule(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   scheduleConfig: ScheduledPostConfig,
 ): CollectionAfterChangeHook | GlobalAfterChangeHook {
+  const publishDateFieldName = getPublishDateFieldName(scheduleConfig)
+
   return async (args: GlobalArgs | CollectionArgs) => {
     const { doc, previousDoc, req } = args
     const slug = isGlobal(args) ? args.global.slug : args.collection.slug
@@ -23,8 +25,10 @@ export default function syncSchedule(
     debug(`syncSchedule ${slug} ${doc.id}`)
 
     const isPublishing = doc._status === 'published'
-    const publishInFuture = doc?.publish_date && new Date(doc.publish_date) > new Date()
-    const scheduleChanged = doc?.publish_date !== previousDoc?.publish_date
+    const publishDateValue = doc?.[publishDateFieldName]
+    const previousPublishDateValue = previousDoc?.[publishDateFieldName]
+    const publishInFuture = publishDateValue && new Date(publishDateValue) > new Date()
+    const scheduleChanged = publishDateValue !== previousPublishDateValue
     try {
       if (isPublishing || scheduleChanged) {
         debug('Deleting previous schedule')
@@ -73,7 +77,7 @@ export default function syncSchedule(
           input,
           req,
           task: schedulePublishTaskSlug,
-          waitUntil: new Date(doc.publish_date),
+          waitUntil: new Date(publishDateValue),
         } as Parameters<typeof payload.jobs.queue>[0])
 
         debug(`scheduled ${slug}:${doc.id} ${res.id}`)

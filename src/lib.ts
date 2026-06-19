@@ -1,6 +1,7 @@
 import type { PayloadRequest, Where } from 'payload'
 
 export const jobsCollectionSlug = 'payload-jobs'
+export const publishDateFieldCustomKey = 'payload-plugin-scheduler:publishDate'
 export const schedulePublishTaskSlug = 'schedulePublish'
 
 export type ScheduleTarget =

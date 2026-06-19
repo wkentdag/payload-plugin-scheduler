@@ -1,3 +1,5 @@
+import type { DateField, FieldPosition } from 'payload'
+
 import type { SafeRelationship } from './fields/SafeRelationship/index.js'
 
 export interface ValueWithRelation {
@@ -5,10 +7,19 @@ export interface ValueWithRelation {
   value: number | string
 }
 
+export type PublishDateFieldOptions = {
+  admin?: {
+    position?: FieldPosition
+  }
+  label?: DateField['label']
+  name?: string
+}
+
 export interface ScheduledPostConfig {
   collections?: string[]
   globals?: string[]
   interval?: number
+  publishDate?: PublishDateFieldOptions
 }
 
 export type SafeRelationshipField = typeof SafeRelationship
