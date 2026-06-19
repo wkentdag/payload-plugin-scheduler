@@ -6,17 +6,15 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { ScheduledPostPlugin } from '../../src/index.js'
-import Basics from './collections/Basics'
-import Pages from './collections/Pages'
-import PagesWithExtraHooks from './collections/PagesWithExtraHooks'
-import Posts from './collections/Posts'
-import Users from './collections/Users'
-import Home from './globals/Home'
+import Basics from './collections/Basics.js'
+import Pages from './collections/Pages.js'
+import PagesWithExtraHooks from './collections/PagesWithExtraHooks.js'
+import Posts from './collections/Posts.js'
+import Users from './collections/Users.js'
+import Home from './globals/Home.js'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-
-export const INTERVAL = 1
 
 export const baseConfig: Omit<Config, 'db'> = {
   admin: {
@@ -31,6 +29,9 @@ export const baseConfig: Omit<Config, 'db'> = {
   globals: [Home],
   secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
   sharp,
+  jobs: {
+    autoRun: [{ cron: '*/5 * * * *' }],
+  },
   typescript: {
     outputFile: path.resolve(dirname, '../payload-types.ts'),
   },
@@ -38,12 +39,7 @@ export const baseConfig: Omit<Config, 'db'> = {
     ScheduledPostPlugin({
       collections: ['pages', 'posts', 'pageswithextrahooks'],
       globals: ['home'],
-      interval: INTERVAL,
-      scheduledPosts: {
-        admin: {
-          hidden: false,
-        },
-      },
+      interval: 5,
     }),
   ],
 }

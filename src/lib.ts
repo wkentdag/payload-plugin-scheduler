@@ -3,7 +3,7 @@ import type { PayloadRequest, Where } from 'payload'
 export const jobsCollectionSlug = 'payload-jobs'
 export const schedulePublishTaskSlug = 'schedulePublish'
 
-type ScheduleTarget =
+export type ScheduleTarget =
   | {
       id: number | string
       slug: string

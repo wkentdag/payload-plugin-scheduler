@@ -72,8 +72,8 @@ export interface Config {
     pageswithextrahooks: Pageswithextrahook;
     posts: Post;
     users: User;
-    scheduled_posts: ScheduledPost;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,14 +85,14 @@ export interface Config {
     pageswithextrahooks: PageswithextrahooksSelect<false> | PageswithextrahooksSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    scheduled_posts: ScheduledPostsSelect<false> | ScheduledPostsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
   globals: {
@@ -107,7 +107,13 @@ export interface Config {
   };
   user: User;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      schedulePublish: TaskSchedulePublish;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -134,7 +140,7 @@ export interface UserAuthOperations {
  * via the `definition` "basics".
  */
 export interface Basic {
-  id: string;
+  id: number;
   title?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -144,20 +150,20 @@ export interface Basic {
  * via the `definition` "pages".
  */
 export interface Page {
-  id: string;
+  id: number;
   title?: string | null;
   content?: string | null;
-  featured_post?: (string | null) | Post;
-  related_pages?: (string | Page)[] | null;
+  featured_post?: (number | null) | Post;
+  related_pages?: (number | Page)[] | null;
   mixed_relationship?:
     | (
         | {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           }
         | {
             relationTo: 'basics';
-            value: string | Basic;
+            value: number | Basic;
           }
       )[]
     | null;
@@ -165,11 +171,11 @@ export interface Page {
     | (
         | {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           }
         | {
             relationTo: 'posts';
-            value: string | Post;
+            value: number | Post;
           }
       )[]
     | null;
@@ -183,7 +189,7 @@ export interface Page {
  * via the `definition` "posts".
  */
 export interface Post {
-  id: string;
+  id: number;
   title?: string | null;
   publish_date?: string | null;
   updatedAt: string;
@@ -195,20 +201,20 @@ export interface Post {
  * via the `definition` "pageswithextrahooks".
  */
 export interface Pageswithextrahook {
-  id: string;
+  id: number;
   title?: string | null;
   content?: string | null;
-  featured_post?: (string | null) | Post;
-  related_pages?: (string | Page)[] | null;
+  featured_post?: (number | null) | Post;
+  related_pages?: (number | Page)[] | null;
   mixed_relationship?:
     | (
         | {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           }
         | {
             relationTo: 'basics';
-            value: string | Basic;
+            value: number | Basic;
           }
       )[]
     | null;
@@ -216,11 +222,11 @@ export interface Pageswithextrahook {
     | (
         | {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           }
         | {
             relationTo: 'posts';
-            value: string | Post;
+            value: number | Post;
           }
       )[]
     | null;
@@ -234,7 +240,7 @@ export interface Pageswithextrahook {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
   name?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -257,35 +263,10 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "scheduled_posts".
- */
-export interface ScheduledPost {
-  id: string;
-  post?:
-    | ({
-        relationTo: 'pages';
-        value: string | Page;
-      } | null)
-    | ({
-        relationTo: 'posts';
-        value: string | Post;
-      } | null)
-    | ({
-        relationTo: 'pageswithextrahooks';
-        value: string | Pageswithextrahook;
-      } | null);
-  global?: 'home' | null;
-  date?: string | null;
-  status?: ('queued' | 'complete') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -299,39 +280,127 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'schedulePublish';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'schedulePublish') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'basics';
-        value: string | Basic;
+        value: number | Basic;
       } | null)
     | ({
         relationTo: 'pages';
-        value: string | Page;
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'pageswithextrahooks';
-        value: string | Pageswithextrahook;
+        value: number | Pageswithextrahook;
       } | null)
     | ({
         relationTo: 'posts';
-        value: string | Post;
+        value: number | Post;
       } | null)
     | ({
         relationTo: 'users';
-        value: string | User;
-      } | null)
-    | ({
-        relationTo: 'scheduled_posts';
-        value: string | ScheduledPost;
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -341,10 +410,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -364,7 +433,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -447,23 +516,42 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "scheduled_posts_select".
- */
-export interface ScheduledPostsSelect<T extends boolean = true> {
-  post?: T;
-  global?: T;
-  date?: T;
-  status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -502,7 +590,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  * via the `definition` "home".
  */
 export interface Home {
-  id: string;
+  id: number;
   title?: string | null;
   publish_date?: string | null;
   _status?: ('draft' | 'published') | null;
@@ -530,6 +618,32 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSchedulePublish".
+ */
+export interface TaskSchedulePublish {
+  input: {
+    type?: ('publish' | 'unpublish') | null;
+    locale?: string | null;
+    doc?:
+      | ({
+          relationTo: 'pages';
+          value: number | Page;
+        } | null)
+      | ({
+          relationTo: 'pageswithextrahooks';
+          value: number | Pageswithextrahook;
+        } | null)
+      | ({
+          relationTo: 'posts';
+          value: number | Post;
+        } | null);
+    global?: 'home' | null;
+    user?: (number | null) | User;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

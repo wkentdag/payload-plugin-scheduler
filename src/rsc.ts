@@ -1,1 +1,1 @@
-export { default as PublishDateInputField } from './fields/PublishDate/components/InputField.js'
+export { default as PublishDateAfterInputServer } from './fields/PublishDate/components/AfterInput/server.js'

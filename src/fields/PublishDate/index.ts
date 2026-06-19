@@ -19,7 +19,7 @@ const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
       date: datePickerProps,
       position: 'sidebar',
       components: {
-        afterInput: ['payload-plugin-scheduler/rsc#PublishDateInputField'],
+        afterInput: ['payload-plugin-scheduler/rsc#PublishDateAfterInputServer'],
         Cell: 'payload-plugin-scheduler/client#PublishDateCell',
       },
     },
