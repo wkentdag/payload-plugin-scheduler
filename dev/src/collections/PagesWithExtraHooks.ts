@@ -1,13 +1,12 @@
-import type { CollectionAfterChangeHook, CollectionConfig } from 'payload/types'
+import type { CollectionAfterChangeHook, CollectionConfig } from 'payload'
 import type { Pageswithextrahook } from 'payload/generated-types'
 import Pages from './Pages'
-// @ts-expect-error
 import { debug } from '../../../src/util'
 
 export const ExtraHook: CollectionAfterChangeHook<Pageswithextrahook> = async ({ doc, req }) => {
   debug(`afterChange ${doc?.id}`)
 
-  if (doc?._status === 'published') { // eslint-disable-line no-underscore-dangle
+  if (doc?._status === 'published') {  
     if (req.transactionID && doc?.title === 'commit-and-throw') {
       await req.payload.db.commitTransaction(req.transactionID)
     }

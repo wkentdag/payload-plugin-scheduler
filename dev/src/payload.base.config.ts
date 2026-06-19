@@ -1,51 +1,41 @@
-import type { Plugin, Config } from "payload/config";
-import { webpackBundler } from '@payloadcms/bundler-webpack'
-import { slateEditor } from '@payloadcms/richtext-slate'
+import type { Config } from 'payload'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 
 import path from 'path'
-import Users from './collections/Users'
-import Pages from './collections/Pages'
-import Posts from './collections/Posts'
-import PagesWithExtraHooks from "./collections/PagesWithExtraHooks";
+import sharp from 'sharp'
+import { fileURLToPath } from 'url'
 
-// @ts-expect-error
-import { ScheduledPostPlugin } from '../../src'
-import Home from "./globals/Home";
-import Basics from "./collections/Basics";
+import { ScheduledPostPlugin } from '../../src/index.js'
+import Basics from './collections/Basics'
+import Pages from './collections/Pages'
+import PagesWithExtraHooks from './collections/PagesWithExtraHooks'
+import Posts from './collections/Posts'
+import Users from './collections/Users'
+import Home from './globals/Home'
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
 export const INTERVAL = 1
 
 export const baseConfig: Omit<Config, 'db'> = {
   admin: {
-    user: Users.slug,
-    bundler: webpackBundler(),
-    webpack: config => {
-      const newConfig = {
-        ...config,
-        resolve: {
-          ...config.resolve,
-          alias: {
-            ...(config?.resolve?.alias || {}),
-            react: path.join(__dirname, '../node_modules/react'),
-            'react-dom': path.join(__dirname, '../node_modules/react-dom'),
-            payload: path.join(__dirname, '../node_modules/payload'),
-          },
-        },
-      }
-      return newConfig
+    importMap: {
+      baseDir: path.resolve(dirname, '..'),
+      importMapFile: path.resolve(dirname, '../app/(payload)/admin/importMap.js'),
     },
+    user: Users.slug,
   },
-  editor: slateEditor({}),
+  editor: lexicalEditor(),
   collections: [Basics, Pages, PagesWithExtraHooks, Posts, Users],
   globals: [Home],
+  secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
+  sharp,
   typescript: {
-    outputFile: path.resolve(__dirname, 'payload-types.ts'),
-  },
-  graphQL: {
-    schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
+    outputFile: path.resolve(dirname, '../payload-types.ts'),
   },
   plugins: [
-    (ScheduledPostPlugin({
+    ScheduledPostPlugin({
       collections: ['pages', 'posts', 'pageswithextrahooks'],
       globals: ['home'],
       interval: INTERVAL,
@@ -54,6 +44,6 @@ export const baseConfig: Omit<Config, 'db'> = {
           hidden: false,
         },
       },
-    }) as unknown as Plugin),
+    }),
   ],
 }

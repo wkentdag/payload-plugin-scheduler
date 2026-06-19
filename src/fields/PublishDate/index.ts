@@ -1,11 +1,11 @@
-import type { DateField } from 'payload/types'
-import type { ConditionalDateProps } from 'payload/dist/admin/components/elements/DatePicker/types'
-import InputField from './components/InputField'
-import type { ScheduledPostConfig } from '../../types'
-import Cell from './components/Cell'
+import type { DateField } from 'payload'
+
+import type { ScheduledPostConfig } from '../../types.js'
+
+type DatePickerProps = NonNullable<NonNullable<DateField['admin']>['date']>
 
 const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
-  const datePickerProps: ConditionalDateProps = {
+  const datePickerProps: DatePickerProps = {
     pickerAppearance: 'dayAndTime',
     timeIntervals: scheduleConfig.interval,
   }
@@ -19,8 +19,8 @@ const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
       date: datePickerProps,
       position: 'sidebar',
       components: {
-        Field: InputField(datePickerProps),
-        Cell,
+        afterInput: ['payload-plugin-scheduler/rsc#PublishDateInputField'],
+        Cell: 'payload-plugin-scheduler/client#PublishDateCell',
       },
     },
   }

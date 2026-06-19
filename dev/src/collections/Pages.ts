@@ -1,6 +1,6 @@
-import { type CollectionConfig } from 'payload/types'
-// @ts-expect-error
-import { SafeRelationship } from '../../../src'
+import { type CollectionConfig } from 'payload'
+
+import { SafeRelationship } from '../../../src/index.js'
 
 // Example Collection - For reference only, this must be added to payload.config.ts to be used.
 const Pages: CollectionConfig = {
@@ -18,27 +18,23 @@ const Pages: CollectionConfig = {
       name: 'content',
       type: 'textarea',
     },
-    // @ts-expect-error @TODO fix clashing react/payload deps
     SafeRelationship({
       relationTo: 'posts',
       name: 'featured_post',
       label: 'Featured Post',
       hasMany: false,
     }),
-    // @ts-expect-error @TODO fix clashing react/payload deps
     SafeRelationship({
       relationTo: 'pages',
       name: 'related_pages',
       label: 'Related Pages',
       hasMany: true,
     }),
-    // @ts-expect-error @TODO fix clashing react/payload deps
     SafeRelationship({
       relationTo: ['pages', 'basics'],
       name: 'mixed_relationship',
       hasMany: true,
     }),
-    // @ts-expect-error @TODO fix clashing react/payload deps
     SafeRelationship({
       relationTo: ['pages', 'posts'],
       name: 'polymorphic',

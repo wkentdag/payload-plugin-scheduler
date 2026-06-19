@@ -1,6 +1,6 @@
-import type { CollectionConfig } from 'payload/types'
+import type { CollectionConfig } from 'payload'
 import { merge } from 'ts-deepmerge'
-import type { ScheduledPostConfig } from '../types'
+import type { ScheduledPostConfig } from '../types.js'
 
 const ScheduledPosts = (scheduleConfig: ScheduledPostConfig): CollectionConfig =>
   merge(

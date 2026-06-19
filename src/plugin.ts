@@ -1,13 +1,21 @@
-import type { Config, Plugin } from 'payload/config'
+import type {
+  CollectionAfterChangeHook,
+  CollectionBeforeChangeHook,
+  CollectionConfig,
+  Config,
+  GlobalAfterChangeHook,
+  GlobalBeforeChangeHook,
+  GlobalConfig,
+  Plugin,
+} from 'payload'
 
-import type { CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, GlobalAfterChangeHook, GlobalBeforeChangeHook, GlobalConfig } from 'payload/types'
-import type { ScheduledPostConfig } from './types'
-import { onInit } from './init'
-import syncSchedule from './hooks/syncSchedule'
-import PublishDateField from './fields/PublishDate'
-import ScheduledPosts from './collections/ScheduledPosts'
-import deleteSchedule from './hooks/deleteSchedule'
-import boundPublishDate from './hooks/boundPublishDate'
+import ScheduledPosts from './collections/ScheduledPosts.js'
+import PublishDateField from './fields/PublishDate/index.js'
+import boundPublishDate from './hooks/boundPublishDate.js'
+import deleteSchedule from './hooks/deleteSchedule.js'
+import syncSchedule from './hooks/syncSchedule.js'
+import { onInit } from './init.js'
+import type { ScheduledPostConfig } from './types.js'
 
 export const ScheduledPostPlugin =
   (incomingScheduleConfig: ScheduledPostConfig): Plugin =>
@@ -90,7 +98,7 @@ export const ScheduledPostPlugin =
     }
 
     config.onInit = async payload => {
-      if (incomingConfig.onInit) await incomingConfig.onInit(payload)
+      if (incomingConfig.onInit) {await incomingConfig.onInit(payload)}
       // Add additional onInit code by using the onInitExtension function
       onInit(scheduleConfig, payload)
     }

@@ -1,0 +1,18 @@
+packages:
+  - '.'
+
+# 10080 minutes = 7 day cooldown on newly published packages
+# https://gist.github.com/mcollina/b294a6c39ee700d24073c0e5a4e93104
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@payloadcms/*'
+  - payload
+
+# pnpm 11: https://pnpm.io/11.x/migration
+allowBuilds:
+  sharp: true
+  esbuild: true
+  unrs-resolver: true
+  '@swc/core': true
+  mongodb-memory-server: false
+  simple-git-hooks: true

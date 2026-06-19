@@ -1,5 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import {  buildConfig } from 'payload/config'
+import { buildConfig } from 'payload'
+
 import { baseConfig } from './payload.base.config'
 
 export default buildConfig({

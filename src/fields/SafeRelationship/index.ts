@@ -1,12 +1,8 @@
-import type { Payload } from 'payload'
-import type { SanitizedConfig } from 'payload/config'
 import type {
-  PayloadRequest,
   RelationshipField,
-  RelationshipValue,
+  RelationshipFieldValidation,
   TypeWithID,
-  Validate,
-} from 'payload/types'
+} from 'payload'
 
 type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
   _status?: 'published' | 'draft'
@@ -20,30 +16,22 @@ type MaybeScheduledDoc = TypeWithID & Record<string, unknown> & {
 export const SafeRelationship: (
   props: Omit<RelationshipField, 'type'>,
 ) => RelationshipField = (props) => {
-  const validate: Validate<RelationshipValue> = async (
+  const validate: RelationshipFieldValidation = async (
     value,
     options,
   ): Promise<string | true> => {
     // first run user validate fn
     if (props.validate) {
-      const validateRes = await props.validate(value, options)
+      const validateRes = await (props.validate as RelationshipFieldValidation)(value, options)
       if (validateRes !== true) {
         return validateRes
       }
     }
 
-    const {
-      config,
-      data,
-      payload,
-      req,
-    }: { config: SanitizedConfig; data: MaybeScheduledDoc; payload?: Payload, req?: PayloadRequest } = options
-
-    // can't run on the client
-    if (!payload) {
-      return true
-    }
-    
+    const { data: rawData, req } = options
+    const data = rawData as MaybeScheduledDoc
+    const payload = req.payload
+    const { config } = payload
     // abort if the field is empty
     if (!value || Array.isArray(value) && value.length === 0) {
       return true
@@ -67,9 +55,10 @@ export const SafeRelationship: (
     const relatedDraftCollections: Record<string, string> = {}
 
     relationsTo.forEach((name) => {
-      const collection = config.collections.find(({ slug }) => slug === name)
-      if (collection?.versions?.drafts) {
-        relatedDraftCollections[collection.slug] = collection.admin.useAsTitle
+      const collection = config.collections.find((collection) => collection.slug === name)
+      const useAsTitle = collection?.admin.useAsTitle
+      if (collection?.versions?.drafts && useAsTitle) {
+        relatedDraftCollections[collection.slug] = useAsTitle
       }
     })
 
@@ -144,7 +133,7 @@ export const SafeRelationship: (
     return true
   }
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+   
   return {
     type: 'relationship',
     ...props,

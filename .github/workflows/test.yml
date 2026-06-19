@@ -33,35 +33,41 @@ jobs:
     env:
       DATABASE_URI: postgres://postgres:postgres@localhost:5432/postgres
       # config path is relative to /dev (jest rootDir)
-      PAYLOAD_CONFIG_PATH: "src/payload.postgres.config.ts"
+      PAYLOAD_CONFIG_PATH: "./dev/src/payload.postgres.config.ts"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
         with:
-          node-version: '18.20.2'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm i -g yarn
-      - run: yarn install
-      - run: yarn build
-      - name: 'Install `dev` folder deps'
-        run: cd dev && yarn install
-      - run: yarn test
+          mode: firewall-free
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: sfw pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test:postgres
   mongo:
     runs-on: ubuntu-latest
     env:
       DATABASE_URI: mongodb://127.0.0.1/plugin-development
-      PAYLOAD_CONFIG_PATH: "src/payload.mongo.config.ts"      
+      PAYLOAD_CONFIG_PATH: "./dev/src/payload.mongo.config.ts"      
     steps:
-        - uses: actions/checkout@v2
-        - uses: actions/setup-node@v2
+        - uses: actions/checkout@v4
+        - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
           with:
-            node-version: '18.20.2'
-            registry-url: 'https://registry.npmjs.org'
-        - run: npm i -g yarn
-        - run: yarn install
-        - run: yarn build
-        - name: 'Install `dev` folder deps'
-          run: cd dev && yarn install
-        - run: yarn test
+            mode: firewall-free
+        - uses: pnpm/action-setup@v4
+          with:
+            version: 11.3.0
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '22'
+            cache: 'pnpm'
+        - run: sfw pnpm install --frozen-lockfile
+        - run: pnpm build
+        - run: pnpm test:mongo
 
     

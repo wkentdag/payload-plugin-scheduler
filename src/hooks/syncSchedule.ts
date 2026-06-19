@@ -1,6 +1,7 @@
-import type { GlobalAfterChangeHook, Where, CollectionAfterChangeHook } from 'payload/types'
-import { type ScheduledPostConfig } from '../types'
-import { debug } from '../util'
+import type { CollectionAfterChangeHook, GlobalAfterChangeHook, Where } from 'payload'
+
+import { type ScheduledPostConfig } from '../types.js'
+import { debug } from '../util.js'
 
 type GlobalArgs = Parameters<GlobalAfterChangeHook>[0]
 type CollectionArgs = Parameters<CollectionAfterChangeHook>[0]
@@ -19,7 +20,7 @@ export default function syncSchedule(
     
     const { payload } = req
     debug(`syncSchedule ${slug} ${doc.id}`)
-    // eslint-disable-next-line no-underscore-dangle
+     
     const isPublishing = doc._status === 'published'
     const publishInFuture = doc?.publish_date && new Date(doc.publish_date) > new Date()
     const scheduleChanged = doc?.publish_date !== previousDoc?.publish_date

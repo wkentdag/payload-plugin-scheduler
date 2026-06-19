@@ -1,6 +1,7 @@
-import type { CollectionBeforeDeleteHook } from 'payload/types'
-import type { ScheduledPostConfig } from '../types'
-import { debug } from '../util'
+import type { CollectionBeforeDeleteHook } from 'payload'
+
+import type { ScheduledPostConfig } from '../types.js'
+import { debug } from '../util.js'
 
 export default function deleteSchedule(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

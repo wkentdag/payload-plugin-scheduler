@@ -1,3 +1,3 @@
-export { ScheduledPostPlugin } from './plugin'
-export { SafeRelationship } from './fields/SafeRelationship'
-export type { ScheduledPostConfig, SafeRelationshipField } from './types'
+export { SafeRelationship } from './fields/SafeRelationship/index.js'
+export { ScheduledPostPlugin } from './plugin.js'
+export type { SafeRelationshipField, ScheduledPostConfig } from './types.js'

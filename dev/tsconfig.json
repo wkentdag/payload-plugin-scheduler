@@ -1,34 +1,41 @@
 {
+  "extends": "../tsconfig.json",
+  "exclude": [],
+  "include": [
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.mjs",
+    "**/*.cjs",
+    "**/*.ts",
+    "**/*.tsx",
+    "../src/**/*.ts",
+    "../src/**/*.tsx",
+    "next.config.mjs",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "strict": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "jsx": "react",
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "jsx": "preserve",
+    "plugins": [{ "name": "next" }],
+    "rootDir": "..",
     "paths": {
+      "@payload-config": [
+        "./src/payload.postgres.config.ts"
+      ],
+      "payload-plugin-scheduler": [
+        "../src/index.ts"
+      ],
+      "payload-plugin-scheduler/client": [
+        "../src/client.ts"
+      ],
+      "payload-plugin-scheduler/rsc": [
+        "../src/rsc.ts"
+      ],
       "payload/generated-types": [
-        "./src/payload-types.ts"
+        "./payload-types.ts"
       ]
     }
-  },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ],
-  "ts-node": {
-    "transpileOnly": true,
-    "swc": true
   }
 }

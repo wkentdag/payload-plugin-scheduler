@@ -1,10 +1,10 @@
 import { cancelJob, Job, scheduledJobs } from 'node-schedule'
 
 import { type Payload } from 'payload'
-import { getUpcomingPosts, publishScheduledPost } from './lib'
-import { type ScheduledPostConfig } from './types'
+import { getUpcomingPosts, publishScheduledPost } from './lib.js'
+import { type ScheduledPostConfig } from './types.js'
 
-import { debug } from './util'
+import { debug } from './util.js'
 
 export const onInit = (config: ScheduledPostConfig, payload: Payload): Job => {
   debug('init')
@@ -25,7 +25,8 @@ export const onInit = (config: ScheduledPostConfig, payload: Payload): Job => {
     // create a job for each document,
     //  scheduled to fire at its publish_date
     await Promise.all(
-      queued.map(async schedule => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      queued.map(async (schedule) => {
         const { date, post, global } = schedule
         const id = schedule.id.toString()
         // overwrite any existing job for this same document
