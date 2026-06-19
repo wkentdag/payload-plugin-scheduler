@@ -55,7 +55,9 @@ const getFieldsWithPublishDate = ({
   entityType: 'collection' | 'global'
   fields: Field[]
   fieldName: string
-  scheduleConfig: ScheduledPostConfig
+  scheduleConfig: ScheduledPostConfig & {
+    timezone?: boolean
+  }
   slug: string
 }): Field[] => {
   const allFields = flattenFields(fields)
@@ -77,6 +79,10 @@ const getFieldsWithPublishDate = ({
       throw new Error(`[payload-plugin-scheduler] ${label} publishDate() field name must match plugin config name "${fieldName}".`)
     }
 
+    if (scheduleConfig.timezone) {
+      return fields.map(field => withPublishDateTimezone(field))
+    }
+
     return fields
   }
 
@@ -89,10 +95,47 @@ const getFieldsWithPublishDate = ({
   return [...fields, PublishDateField(scheduleConfig)]
 }
 
+const withPublishDateTimezone = (field: Field): Field => {
+  if (isPluginPublishDateField(field)) {
+    return {
+      ...field,
+      timezone: true,
+    } as Field
+  }
+
+  if ('fields' in field && Array.isArray(field.fields)) {
+    return {
+      ...field,
+      fields: field.fields.map(nestedField => withPublishDateTimezone(nestedField)),
+    } as Field
+  }
+
+  if ('tabs' in field && Array.isArray(field.tabs)) {
+    return {
+      ...field,
+      tabs: field.tabs.map((tab) => {
+        if ('fields' in tab && Array.isArray(tab.fields)) {
+          return {
+            ...tab,
+            fields: tab.fields.map(nestedField => withPublishDateTimezone(nestedField)),
+          }
+        }
+
+        return tab
+      }),
+    } as Field
+  }
+
+  return field
+}
+
 export const ScheduledPostPlugin =
   (incomingScheduleConfig: ScheduledPostConfig): Plugin =>
   (incomingConfig: Config): Config => {
-    const scheduleConfig = {...incomingScheduleConfig }
+    const scheduleConfig = {
+      ...incomingScheduleConfig,
+      timezone: Boolean(incomingConfig.admin?.timezones),
+    }
     if (!scheduleConfig.interval) {
       scheduleConfig.interval = 5
     }

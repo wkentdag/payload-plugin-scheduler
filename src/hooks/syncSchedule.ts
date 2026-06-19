@@ -6,6 +6,16 @@ import { debug, getPublishDateFieldName } from '../util.js'
 
 type GlobalArgs = Parameters<GlobalAfterChangeHook>[0]
 type CollectionArgs = Parameters<CollectionAfterChangeHook>[0]
+type SchedulePublishInput = {
+  doc?: {
+    relationTo: string
+    value: string
+  }
+  global?: string
+  timezone?: string
+  type: 'publish'
+  user?: number | string
+}
 
 function isGlobal(args:  CollectionArgs| GlobalArgs): args is GlobalArgs {
   return (args as GlobalArgs).global !== undefined
@@ -16,6 +26,7 @@ export default function syncSchedule(
   scheduleConfig: ScheduledPostConfig,
 ): CollectionAfterChangeHook | GlobalAfterChangeHook {
   const publishDateFieldName = getPublishDateFieldName(scheduleConfig)
+  const timezoneFieldName = `${publishDateFieldName}_tz`
 
   return async (args: GlobalArgs | CollectionArgs) => {
     const { doc, previousDoc, req } = args
@@ -26,6 +37,7 @@ export default function syncSchedule(
 
     const isPublishing = doc._status === 'published'
     const publishDateValue = doc?.[publishDateFieldName]
+    const timezone = doc?.[timezoneFieldName]
     const previousPublishDateValue = previousDoc?.[publishDateFieldName]
     const publishInFuture = publishDateValue && new Date(publishDateValue) > new Date()
     const scheduleChanged = publishDateValue !== previousPublishDateValue
@@ -58,7 +70,7 @@ export default function syncSchedule(
       // if the publish date has changed and it's in the future, schedule it
       if (scheduleChanged && publishInFuture) {
         debug('Scheduling post', slug, doc.id)
-        const input = isGlobal(args)
+        const input: SchedulePublishInput = isGlobal(args)
           ? {
               global: slug,
               type: 'publish',
@@ -72,6 +84,10 @@ export default function syncSchedule(
               type: 'publish',
               user: req.user?.id,
             }
+
+        if (typeof timezone === 'string') {
+          input.timezone = timezone
+        }
 
         const res = await payload.jobs.queue({
           input,

@@ -14,12 +14,14 @@ const baseGlobal = (fields: GlobalConfig['fields'] = []): GlobalConfig => ({
 })
 
 const applyPlugin = ({
+  admin,
   collections = [baseCollection()],
   globals,
   pluginConfig = {
     collections: ['posts'],
   },
 }: {
+  admin?: Config['admin']
   collections?: CollectionConfig[]
   globals?: GlobalConfig[]
   pluginConfig?: Parameters<typeof ScheduledPostPlugin>[0]
@@ -27,6 +29,7 @@ const applyPlugin = ({
   const plugin = ScheduledPostPlugin(pluginConfig)
 
   return plugin({
+    admin,
     collections,
     globals,
   } as Config) as Config
@@ -157,5 +160,31 @@ describe('plugin config', () => {
 
     expect(publishDateFields).toHaveLength(1)
     expect(publishDateFields[0]).toBe(manualField)
+  })
+
+  it('leaves publish-date timezone unset by default', () => {
+    const config = applyPlugin({})
+    const collection = getCollection(config)
+    const field = collection.fields.find(isPluginPublishDateField)
+
+    expect(field).toBeTruthy()
+    expect(field).not.toHaveProperty('timezone')
+  })
+
+  it('enables publish-date timezone when admin.timezones is configured', () => {
+    const config = applyPlugin({
+      admin: {
+        timezones: {
+          defaultTimezone: 'Europe/Berlin',
+        },
+      },
+    })
+    const collection = getCollection(config)
+    const field = collection.fields.find(isPluginPublishDateField)
+
+    expect(field).toBeTruthy()
+    expect(field).toMatchObject({
+      timezone: true,
+    })
   })
 })

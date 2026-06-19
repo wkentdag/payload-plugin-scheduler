@@ -5,8 +5,11 @@ import type { PublishDateFieldOptions, ScheduledPostConfig } from '../../types.j
 import { getPublishDateFieldName } from '../../util.js'
 
 type DatePickerProps = NonNullable<NonNullable<DateField['admin']>['date']>
+type PublishDateFieldConfig = ScheduledPostConfig & {
+  timezone?: boolean
+}
 
-const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
+const PublishDateField = (scheduleConfig: PublishDateFieldConfig): DateField => {
   const datePickerProps: DatePickerProps = {
     pickerAppearance: 'dayAndTime',
     timeIntervals: scheduleConfig.interval,
@@ -17,6 +20,7 @@ const PublishDateField = (scheduleConfig: ScheduledPostConfig): DateField => {
     label: scheduleConfig.publishDate?.label || 'Publish Date',
     index: true,
     type: 'date',
+    ...(scheduleConfig.timezone ? { timezone: true } : {}),
     admin: {
       date: datePickerProps,
       position: scheduleConfig.publishDate?.admin?.position || 'sidebar',
