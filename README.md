@@ -9,6 +9,17 @@ This plugin was originally written for Payload v2, and included a background sch
 
 ![ci status](https://github.com/wkentdag/payload-plugin-scheduler/actions/workflows/test.yml/badge.svg)
 
+## Demo
+
+### Publish date field
+
+<video src="./assets/field-demo.mp4" controls width="100%"></video>
+
+
+### List view status
+
+<video src="./assets/list-demo.mp4" controls width="100%"></video>
+
 ## Requirements
 
 - Payload v3
@@ -20,6 +31,8 @@ npm add payload-plugin-scheduler
 ```
 
 ## Usage
+
+After configuring the plugin, ensure that you've regenerated payload's import map, otherwise the custom components won't display.
 
 ```ts
 // payload.config.ts
