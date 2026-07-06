@@ -9,16 +9,15 @@ This plugin was originally written for Payload v2, and included a background sch
 
 ![ci status](https://github.com/wkentdag/payload-plugin-scheduler/actions/workflows/test.yml/badge.svg)
 
-## Demo
+## UI Demo
 
-### Publish date field
+Publish date field:
 
-<video src="./assets/field-demo.mp4" controls width="100%"></video>
+<video src="https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/field-demo.mp4" controls width="100%"></video>
 
+List view:
 
-### List view status
-
-<video src="./assets/list-demo.mp4" controls width="100%"></video>
+<video src="https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/list-demo.mp4" controls width="100%"></video>
 
 ## Requirements
 
