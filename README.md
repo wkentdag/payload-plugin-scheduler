@@ -11,13 +11,9 @@ This plugin was originally written for Payload v2, and included a background sch
 
 ## UI Demo
 
-Publish date field:
+![Publish date field](https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/field-demo.gif)
 
-<video src="https://github.com/wkentdag/payload-plugin-scheduler/raw/refs/heads/main/assets/field-demo.mp4" controls width="100%"></video>
-
-List view:
-
-<video src="https://github.com/wkentdag/payload-plugin-scheduler/raw/refs/heads/main/assets/list-demo.mp4" controls width="100%"></video>
+![List view](https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/list-demo.gif)
 
 ## Requirements
 
