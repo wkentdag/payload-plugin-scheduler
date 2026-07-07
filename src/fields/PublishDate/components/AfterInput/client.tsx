@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { useDocumentInfo } from '@payloadcms/ui'
 import { formatDateTime } from '../../util.js'
 import { text } from '../styles.js'
