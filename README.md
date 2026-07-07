@@ -13,11 +13,11 @@ This plugin was originally written for Payload v2, and included a background sch
 
 Publish date field:
 
-<video src="https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/field-demo.mp4" controls width="100%"></video>
+<video src="https://github.com/wkentdag/payload-plugin-scheduler/raw/refs/heads/main/assets/field-demo.mp4" controls width="100%"></video>
 
 List view:
 
-<video src="https://raw.githubusercontent.com/wkentdag/payload-plugin-scheduler/main/assets/list-demo.mp4" controls width="100%"></video>
+<video src="https://github.com/wkentdag/payload-plugin-scheduler/raw/refs/heads/main/assets/list-demo.mp4" controls width="100%"></video>
 
 ## Requirements
 
