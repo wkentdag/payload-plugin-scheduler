@@ -14,12 +14,6 @@ importers:
       debug:
         specifier: 4.3.4
         version: 4.3.4
-      qs:
-        specifier: 6.12.1
-        version: 6.12.1
-      ts-deepmerge:
-        specifier: 7.0.0
-        version: 7.0.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: 3.2.0
@@ -4892,10 +4886,6 @@ packages:
     resolution: {integrity: sha512-eZ7l+0ZVy3He9c85pEM9KEBR9DFA4jrmWvIjm9wpcHvScwc/vgZDl2TNOF0pm0JsWKw24XBUZOY0Wxn7/nvJnw==}
     engines: {node: '>=18'}
 
-  qs@6.12.1:
-    resolution: {integrity: sha512-zWmv4RSuB9r2mYQw3zxQuHWeU+42aKi1wWig/j4ele4ygELZ7PEO6MM7rim9oAQH2A5MWfsAVf/jPvTPgCbvUQ==}
-    engines: {node: '>=0.6'}
-
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -5456,10 +5446,6 @@ packages:
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
-
-  ts-deepmerge@7.0.0:
-    resolution: {integrity: sha512-WZ/iAJrKDhdINv1WG6KZIGHrZDar6VfhftG1QJFpVbOYZMYJLJOvZOo1amictRXVdBXZIgBHKswMTXzElngprA==}
-    engines: {node: '>=14.13.1'}
 
   ts-essentials@10.0.3:
     resolution: {integrity: sha512-/FrVAZ76JLTWxJOERk04fm8hYENDo0PWSP3YLQKxevLwWtxemGcl5JJEzN4iqfDlRve0ckyfFaOBu4xbNH/wZw==}
@@ -11126,10 +11112,6 @@ snapshots:
 
   qs-esm@8.0.1: {}
 
-  qs@6.12.1:
-    dependencies:
-      side-channel: 1.1.1
-
   queue-microtask@1.2.3: {}
 
   quick-format-unescaped@4.0.4: {}
@@ -11826,8 +11808,6 @@ snapshots:
   ts-api-utils@2.5.0(typescript@5.7.3):
     dependencies:
       typescript: 5.7.3
-
-  ts-deepmerge@7.0.0: {}
 
   ts-essentials@10.0.3(typescript@5.7.3):
     optionalDependencies:

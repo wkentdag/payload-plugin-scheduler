@@ -179,6 +179,14 @@ export const featuredContent: Field = SafeRelationship({
 })
 ```
 
+## Debugging
+
+Set `DEBUG=payload-plugin-scheduler` in your runtime env to enable debug logging.
+
+## Contributing
+
+After cloning the repo and installing dependencies, run `pnpm exec simple-git-hooks` to setup automatic pre-commit linting.
+
 ## Migration From v2
 
 The v3 plugin no longer creates or writes to a plugin-owned `scheduled_posts` collection, and it no longer uses `node-schedule`. Scheduled publishes are represented as native Payload `schedulePublish` jobs in Payload's jobs collection.
@@ -189,3 +197,4 @@ To upgrade:
 - Configure and run Payload Jobs in the host app. Dedicated servers and serverless deployments need different worker/cron strategies.
 - If you use Payload `admin.timezones`, verify the resulting `<fieldName>_tz` values in your own scheduling flow.
 - Generate and run a new database migration.
+- Rebuild payload's import map.

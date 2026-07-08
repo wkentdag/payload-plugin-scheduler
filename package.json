@@ -64,7 +64,6 @@
     "lint:fix": "eslint ./src --fix",
     "prebuild": "pnpm generate",
     "predev": "pnpm generate",
-    "prepare": "pnpm exec simple-git-hooks",
     "prerelease": "pnpm clean && pnpm build && pnpm test",
     "release": "release-it",
     "test": "cross-env NODE_ENV=test PAYLOAD_CONFIG_PATH=./dev/src/payload.postgres.config.ts vitest run --config ./vitest.config.js",
@@ -110,8 +109,6 @@
   },
   "dependencies": {
     "date-fns": "3.6.0",
-    "debug": "4.3.4",
-    "qs": "6.12.1",
-    "ts-deepmerge": "7.0.0"
+    "debug": "4.3.4"
   }
 }
