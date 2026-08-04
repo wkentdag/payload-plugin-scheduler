@@ -22,8 +22,15 @@ export type PublishDateFieldOptions = Partial<Omit<DateField, 'admin' | 'timezon
 
 export type ManualPublishDateFieldOptions = Omit<PublishDateFieldOptions, 'name'>
 
+/**
+ * Controls whose access permissions Payload uses when the scheduled publish job executes.
+ * Use `override` to execute the job with `overrideAccess` set to `true`.
+ */
+export type ExecutionAccess = 'override' | 'user'
+
 export interface ScheduledPostConfig {
   collections?: string[]
+  executionAccess?: ExecutionAccess
   globals?: string[]
   interval?: number
   publishDate?: PublishDateFieldOptions
@@ -31,6 +38,7 @@ export interface ScheduledPostConfig {
 
 export type NormalizedScheduledPostConfig = {
   collections: string[]
+  executionAccess: ExecutionAccess
   globals: string[]
   interval: number
   publishDate: DateField

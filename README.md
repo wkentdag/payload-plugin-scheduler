@@ -94,6 +94,20 @@ ScheduledPostPlugin({
 
 Your job queue cron interval should match this value, eg `autoRun: [{ cron: '*/5 * * * *' }]`.
 
+### `executionAccess?: 'user' | 'override'`
+
+Controls whose access permissions Payload uses when the scheduled publish job executes. Defaults to `user`.
+
+- `user` stores the authenticated scheduling user's ID on the job. Payload re-checks that user's current permissions at execution time. Scheduling without an authenticated user throws an error.
+- `override` omits the user from the job, causing Payload to execute it with access overridden.
+
+```ts
+ScheduledPostPlugin({
+  collections: ['posts'],
+  executionAccess: 'override',
+})
+```
+
 ### `publishDate?: object`
 
 Configure the generated publish-date field.

@@ -41,6 +41,19 @@ export default function syncSchedule(
     const previousPublishDateValue = previousDoc?.[publishDateFieldName]
     const publishInFuture = publishDateValue && new Date(publishDateValue) > new Date()
     const scheduleChanged = publishDateValue !== previousPublishDateValue
+
+    if (
+      !isPublishing &&
+      scheduleChanged &&
+      publishInFuture &&
+      scheduleConfig.executionAccess === 'user' &&
+      !req.user
+    ) {
+      throw new Error(
+        '[payload-plugin-scheduler] Cannot schedule a publish with executionAccess "user" without an authenticated user',
+      )
+    }
+
     try {
       if (isPublishing || scheduleChanged) {
         debug('Deleting previous schedule')
@@ -74,7 +87,6 @@ export default function syncSchedule(
           ? {
               global: slug,
               type: 'publish',
-              user: req.user?.id,
             }
           : {
               doc: {
@@ -82,8 +94,11 @@ export default function syncSchedule(
                 value: String(doc.id),
               },
               type: 'publish',
-              user: req.user?.id,
             }
+
+        if (scheduleConfig.executionAccess === 'user') {
+          input.user = req.user!.id
+        }
 
         if (typeof timezone === 'string') {
           input.timezone = timezone

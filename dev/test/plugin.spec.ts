@@ -174,6 +174,91 @@ describe('Plugin tests', () => {
     expect(updatedTotalDocs).toBe(0)
   })
 
+  it('allows a restricted user to publish later through an override-access job', async () => {
+    const user = await payload.create({
+      collection: 'users',
+      data: {
+        email: `override-scheduler-${Date.now()}@example.com`,
+        password: 'test-password',
+      },
+    })
+
+    await expect(payload.create({
+      collection: 'posts',
+      data: {
+        title: 'direct publish is forbidden',
+        _status: 'published',
+      },
+      overrideAccess: false,
+      user,
+    })).rejects.toThrow('Authenticated test users cannot publish posts directly')
+
+    const pubDate = addSeconds(new Date(), 1)
+    const draft = await payload.create({
+      collection: 'posts',
+      data: {
+        title: 'override scheduled publish',
+        publish_date: pubDate.toISOString(),
+      },
+      overrideAccess: false,
+      user,
+    })
+    const { docs: [schedule] } = await findSchedule(draft.id)
+
+    expect(schedule.input).not.toHaveProperty('user')
+
+    await waitFor(1500)
+    await payload.jobs.run()
+
+    const publishedDraft = await payload.findByID({
+      collection: 'posts',
+      id: draft.id,
+    })
+
+    expect(publishedDraft._status).toBe('published')
+  })
+
+  it('fails a restricted user job when it executes as the scheduling user', async () => {
+    const user = await payload.create({
+      collection: 'users',
+      data: {
+        email: `user-scheduler-${Date.now()}@example.com`,
+        password: 'test-password',
+      },
+    })
+    const draft = await payload.create({
+      collection: 'posts',
+      data: {
+        title: 'user-access publish',
+      },
+      overrideAccess: false,
+      user,
+    })
+
+    await payload.jobs.queue({
+      input: {
+        doc: {
+          relationTo: 'posts',
+          value: String(draft.id),
+        },
+        type: 'publish',
+        user: user.id,
+      },
+      task: 'schedulePublish',
+      waitUntil: addSeconds(new Date(), 1),
+    } as Parameters<typeof payload.jobs.queue>[0])
+
+    await waitFor(1500)
+    await payload.jobs.run()
+
+    const unchangedDraft = await payload.findByID({
+      collection: 'posts',
+      id: draft.id,
+    })
+
+    expect(unchangedDraft._status).toBe('draft')
+  })
+
   it('handles subsequent draft updates to pending posts', async () => {
     const now = new Date()
     const pubDate = addMinutes(now, 5)
