@@ -50,6 +50,42 @@ jobs:
       - run: sfw pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test:postgres
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URI: postgres://postgres:postgres@localhost:5432/postgres
+      PAYLOAD_CONFIG_PATH: "./dev/src/payload.postgres.config.ts"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          mode: firewall-free
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: sfw pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Playwright E2E tests
+        run: pnpm test:e2e
+        env:
+          NODE_ENV: development
   mongo:
     runs-on: ubuntu-latest
     env:

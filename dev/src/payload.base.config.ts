@@ -12,6 +12,7 @@ import PagesWithExtraHooks from './collections/PagesWithExtraHooks.js'
 import Posts from './collections/Posts.js'
 import Users from './collections/Users.js'
 import Home from './globals/Home.js'
+import { seed } from '../seed.js'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -27,6 +28,7 @@ export const baseConfig: Omit<Config, 'db'> = {
   editor: lexicalEditor(),
   collections: [Basics, Pages, PagesWithExtraHooks, Posts, Users],
   globals: [Home],
+  onInit: seed,
   secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
   sharp,
   jobs: {
