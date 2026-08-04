@@ -18,6 +18,7 @@ const reservedPublishDateComponentSlots = Object.keys(publishDateComponents)
 
 export const defaultOpts: NormalizedScheduledPostConfig = {
   collections: [],
+  executionAccess: 'user',
   globals: [],
   interval: 5,
   publishDate: {
@@ -60,6 +61,7 @@ export const normalizeScheduleConfig = (
 
   return {
     collections: scheduleConfig.collections ? [...scheduleConfig.collections] : [...defaultOpts.collections],
+    executionAccess: scheduleConfig.executionAccess ?? defaultOpts.executionAccess,
     globals: scheduleConfig.globals ? [...scheduleConfig.globals] : [...defaultOpts.globals],
     interval,
     publishDate: {

@@ -38,6 +38,7 @@ export const baseConfig: Omit<Config, 'db'> = {
   plugins: [
     ScheduledPostPlugin({
       collections: ['pages', 'posts', 'pageswithextrahooks'],
+      executionAccess: 'override',
       globals: ['home'],
       interval: 5,
     }),
