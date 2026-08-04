@@ -67,6 +67,7 @@
     "prerelease": "pnpm clean && pnpm build && pnpm test",
     "release": "release-it",
     "test": "cross-env NODE_ENV=test PAYLOAD_CONFIG_PATH=./dev/src/payload.postgres.config.ts vitest run --config ./vitest.config.js",
+    "test:e2e": "playwright test",
     "test:mongo": "cross-env NODE_ENV=test PAYLOAD_CONFIG_PATH=./dev/src/payload.mongo.config.ts vitest run --config ./vitest.config.js",
     "test:postgres": "cross-env NODE_ENV=test PAYLOAD_CONFIG_PATH=./dev/src/payload.postgres.config.ts vitest run --config ./vitest.config.js"
   },
@@ -83,6 +84,7 @@
     "@payloadcms/next": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
     "@payloadcms/ui": "3.85.0",
+    "@playwright/test": "^1.58.2",
     "@swc/cli": "0.6.0",
     "@types/debug": "4.1.12",
     "@types/node": "22.19.9",
