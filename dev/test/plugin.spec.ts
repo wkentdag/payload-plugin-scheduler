@@ -242,7 +242,10 @@ describe('Plugin tests', () => {
           value: String(draft.id),
         },
         type: 'publish',
-        user: user.id,
+        user: {
+          relationTo: 'users',
+          value: user.id,
+        },
       },
       task: 'schedulePublish',
       waitUntil: addSeconds(new Date(), 1),
