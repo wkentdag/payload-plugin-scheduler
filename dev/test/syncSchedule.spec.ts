@@ -8,11 +8,11 @@ const buildArgs = (
   {
     executionAccess = 'user',
     target = 'collection',
-    user = { id: 1 },
+    user = { collection: 'users', id: 1 },
   }: {
     executionAccess?: 'override' | 'user'
     target?: 'collection' | 'global'
-    user?: { id: number | string } | null
+    user?: { collection?: string; id: number | string } | null
   } = {},
 ) => {
   const deleteMany = vi.fn().mockResolvedValue({ docs: [] })
@@ -77,7 +77,10 @@ describe('syncSchedule', () => {
 
     expect(queue).toHaveBeenCalledWith(expect.objectContaining({
       input: expect.objectContaining({
-        user: 1,
+        user: {
+          relationTo: 'users',
+          value: 1,
+        },
       }),
     }))
   })
@@ -127,6 +130,20 @@ describe('syncSchedule', () => {
 
     await expect(hook(args as never)).rejects.toThrow(
       'Cannot schedule a publish with executionAccess "user" without an authenticated user',
+    )
+    expect(queue).not.toHaveBeenCalled()
+  })
+
+  it('rejects user-access jobs without the scheduling user auth collection', async () => {
+    const publishDate = new Date(Date.now() + 60_000).toISOString()
+    const { args, hook, queue } = buildArgs({
+      publish_date: publishDate,
+    }, {
+      user: { id: 1 },
+    })
+
+    await expect(hook(args as never)).rejects.toThrow(
+      "Cannot schedule a publish with executionAccess \"user\" without the scheduling user's auth collection",
     )
     expect(queue).not.toHaveBeenCalled()
   })

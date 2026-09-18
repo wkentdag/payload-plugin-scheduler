@@ -17,7 +17,7 @@ This plugin was originally written for Payload v2, and included a background sch
 
 ## Requirements
 
-- Payload v3
+- Payload >= 3.90.0
 
 ## Installation
 

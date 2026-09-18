@@ -1,7 +1,7 @@
 import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
 import { deleteScheduledPublishJobs, schedulePublishTaskSlug } from '../lib.js'
-import { type NormalizedScheduledPostConfig } from '../types.js'
+import { type NormalizedScheduledPostConfig, type ValueWithRelation } from '../types.js'
 import { debug } from '../util.js'
 
 type GlobalArgs = Parameters<GlobalAfterChangeHook>[0]
@@ -14,7 +14,7 @@ type SchedulePublishInput = {
   global?: string
   timezone?: string
   type: 'publish'
-  user?: number | string
+  user?: ValueWithRelation
 }
 
 function isGlobal(args:  CollectionArgs| GlobalArgs): args is GlobalArgs {
@@ -46,12 +46,19 @@ export default function syncSchedule(
       !isPublishing &&
       scheduleChanged &&
       publishInFuture &&
-      scheduleConfig.executionAccess === 'user' &&
-      !req.user
+      scheduleConfig.executionAccess === 'user'
     ) {
-      throw new Error(
-        '[payload-plugin-scheduler] Cannot schedule a publish with executionAccess "user" without an authenticated user',
-      )
+      if (!req.user) {
+        throw new Error(
+          '[payload-plugin-scheduler] Cannot schedule a publish with executionAccess "user" without an authenticated user',
+        )
+      }
+
+      if (!req.user.collection) {
+        throw new Error(
+          "[payload-plugin-scheduler] Cannot schedule a publish with executionAccess \"user\" without the scheduling user's auth collection",
+        )
+      }
     }
 
     try {
@@ -97,7 +104,10 @@ export default function syncSchedule(
             }
 
         if (scheduleConfig.executionAccess === 'user') {
-          input.user = req.user!.id
+          input.user = {
+            relationTo: req.user!.collection,
+            value: req.user!.id,
+          }
         }
 
         if (typeof timezone === 'string') {
